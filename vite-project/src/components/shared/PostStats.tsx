@@ -170,20 +170,20 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
                         </div>
 
                         {/* Botón de descarga solo si es un recurso o tiene imagen */}
-                        {(post?.isResource || post?.imageUrl !== 'https://example.com/default-image.jpg') && (
-                            <Button
-                                type="button"
-                                className="cursor-pointer"
-                                onClick={() => setDrawerOpen(true)}
-                            >
-                                <img
-                                    src="/assets/icons/download.svg"
-                                    alt="download"
-                                    width={20}
-                                    height={20}
-                                />
-                            </Button>
-                        )}
+                        {(post?.fileId || post?.imageId) && (
+            <Button
+                type="button"
+                className="cursor-pointer"
+                onClick={() => setDrawerOpen(true)}
+            >
+                <img
+                    src="/assets/icons/download.svg"
+                    alt="download"
+                    width={20}
+                    height={20}
+                />
+            </Button>
+        )}
                     </div>
 
                     <div className="flex gap-2">
@@ -217,40 +217,42 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
                     </Button>
                 )}
 
-                <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-                    <DrawerContent className="bg-dark-1">
-                        <div className="mx-auto max-w-sm">
-                            <DrawerHeader>
-                                <DrawerTitle>Opciones de Descarga</DrawerTitle>
-                                <DrawerDescription>Selecciona una opción para descargar.</DrawerDescription>
-                            </DrawerHeader>
-                        </div>
-                        
-                        <div className="flex items-center justify-center gap-4 p-4">
-                            <Button
-                                variant="outline"
-                                className="shad-button_primary w-64"
-                                onClick={handleDownloadImage}
-                            >
-                                Descargar Foto
-                            </Button>
-                            <Button
-                                variant="outline"
-                                className="shad-button_primary w-64"
-                                onClick={handleDownloadFile}
-                            >
-                                Descargar Archivo
-                            </Button>
-                        </div>
-                        <DrawerFooter>
-                            <div className="flex items-center justify-center">
-                                <DrawerClose asChild>
-                                    <Button variant="outline" className="shad-button_dark_4 w-64">Cerrar</Button>
-                                </DrawerClose>
-                            </div>
-                        </DrawerFooter>
-                    </DrawerContent>
-                </Drawer>
+<Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+    <DrawerContent className="bg-dark-1">
+        <div className="mx-auto max-w-sm">
+            <DrawerHeader>
+                <DrawerTitle>Opciones de Descarga</DrawerTitle>
+                <DrawerDescription>Selecciona una opción para descargar.</DrawerDescription>
+            </DrawerHeader>
+        </div>
+        
+        <div className="flex items-center justify-center gap-4 p-4">
+            <Button
+                variant="outline"
+                className="shad-button_primary w-64"
+                onClick={handleDownloadImage}
+                disabled={!post?.imageId} // Deshabilitar si no hay imagen
+            >
+                Descargar Foto
+            </Button>
+            <Button
+                variant="outline"
+                className="shad-button_primary w-64"
+                onClick={handleDownloadFile}
+                disabled={!post?.fileId} // Deshabilitar si no hay archivo
+            >
+                Descargar Archivo
+            </Button>
+        </div>
+        <DrawerFooter>
+            <div className="flex items-center justify-center">
+                <DrawerClose asChild>
+                    <Button variant="outline" className="shad-button_dark_4 w-64">Cerrar</Button>
+                </DrawerClose>
+            </div>
+        </DrawerFooter>
+    </DrawerContent>
+</Drawer>
             </div>
         </div>
     );
