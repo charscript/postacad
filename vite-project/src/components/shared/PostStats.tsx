@@ -5,13 +5,13 @@ import { Models } from 'appwrite';
 import Loader from './loader';
 import { Button } from '@/components/ui/button';  // Asegúrate de importar el componente Button
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from '@/components/ui/drawer';  // Asegúrate de importar el Drawer
+import { useGetFileDownload } from '@/lib/react-query/queriesAndMutations';  // Importa el hook de descarga
 
 type PostStatsProps = {
     post?: Models.Document;
     userId: string;
     handlePurchase?: () => void;  // Añadir handlePurchase como prop opcional
 };
-
 const COOLDOWN_TIME = 1000; // Tiempo en milisegundos para el cooldown
 
 type QueueItem = {
@@ -109,8 +109,49 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
 
     const isMutating = savePostStatus === 'pending' || deleteSavedPostStatus === 'pending';
 
+    // Hooks para obtener la URL de descarga
+    const { mutateAsync: getFileDownload } = useGetFileDownload();
+    const { mutateAsync: getImageDownload } = useGetFileDownload();
+
+    const handleDownloadFile = async () => {
+        if (post?.fileId) {
+            try {
+                const result = await getFileDownload(post.fileId);
+                if (result) {
+                    const link = document.createElement('a');
+                    link.href = result.toString();; // Usa la URL directamente
+                    link.download = 'archivo'; // Ajusta el nombre del archivo si es necesario
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            } catch (error) {
+                console.error('Error downloading file:', error);
+            }
+        }
+    };
+
+    const handleDownloadImage = async () => {
+        if (post?.imageId) {
+            try {
+                // Usa mutateAsync para obtener la URL de descarga
+                const result = await getImageDownload(post.imageId);
+                if (result) {
+                    const link = document.createElement('a');
+                    link.href = result.toString();; // Usa la URL directamente
+                    link.download = 'imagen'; // Ajusta el nombre de la imagen si es necesario
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            } catch (error) {
+                console.error('Error downloading image:', error);
+            }
+        }
+    };
+
     return (
-        <div className="flex flex-col gap-4 z-20 w-full relative"> {/* Añade relative aquí */}
+        <div className="flex flex-col gap-4 z-20 w-full relative">
             <div className="flex flex-col gap-4 z-20">
                 <div className="flex justify-between w-full">
                     <div className="flex items-center gap-2">
@@ -169,7 +210,7 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
                 {post?.isResource && post.price > 0 && post.creator && userId !== post.creator.$id && handlePurchase && (
                     <Button
                         type="button"
-                        className="shad-button_primary w-32 absolute left-1/2 transform -translate-x-1/2" // Estilo absoluto para centrar
+                        className="shad-button_primary w-32 absolute left-1/2 transform -translate-x-1/2"
                         onClick={handlePurchase}
                     >
                         Comprar
@@ -189,20 +230,14 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
                             <Button
                                 variant="outline"
                                 className="shad-button_primary w-64"
-                                onClick={() => {
-                                    // Implementa la lógica para descargar la foto
-                                    console.log('Descargando foto...');
-                                }}
+                                onClick={handleDownloadImage}
                             >
                                 Descargar Foto
                             </Button>
                             <Button
                                 variant="outline"
                                 className="shad-button_primary w-64"
-                                onClick={() => {
-                                    // Implementa la lógica para descargar el archivo
-                                    console.log('Descargando archivo...');
-                                }}
+                                onClick={handleDownloadFile}
                             >
                                 Descargar Archivo
                             </Button>

@@ -24,6 +24,7 @@ import { createUserAccount,
     searchPostsWithImages,
     getFollowedPosts,
     isFollowing,
+    getFileDownload,
     } from '../appwrite/api'
 import { INewPost, INewUser, IUpdatePost, IUpdateUser } from "@/types";
 import { QUERY_KEYS } from './queryKeys';
@@ -34,6 +35,27 @@ export const useCreateUserAccount = () => {
         mutationFn: (user: INewUser) => createUserAccount(user)
     })
 }
+
+export const useGetFileDownload = () => {
+    return useMutation({
+        mutationFn: async (fileId: string) => {
+            if (!fileId) throw new Error('File ID is required');
+
+            // Llama a la función correspondiente según el tipo de archivo
+            const result = await getFileDownload(fileId);
+
+            if (!result) throw new Error('No data received');
+            
+            return result;
+        },
+        onSuccess: (data) => {
+            console.log('Archivo o imagen descargado exitosamente', data);
+        },
+        onError: (error) => {
+            console.log('Error al descargar el archivo o imagen', error);
+        },
+    });
+};
 
 export const useSignInAccount = () => {
     return useMutation({

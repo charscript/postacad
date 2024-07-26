@@ -261,6 +261,20 @@ async function getFollowedUserIds() {
     }
   }
 
+  export async function getFileDownload(fileId: string) {
+    try {
+
+        const result = await storage.getFileDownload(
+            appwriteConfig.storageId,
+            fileId
+        );
+        return result;
+    } catch (error) {
+        console.log(error);
+        throw error; // Propagar el error para manejarlo en el hook
+    }
+}
+
   export async function getFollowedPosts() {
     try {
       const followedUsers = await getFollowedUserIds();
