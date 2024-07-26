@@ -1,5 +1,5 @@
 import { ID, ImageGravity, Query} from "appwrite";
-import { INewUser, INewPost, IUpdatePost } from "@/types";
+import { INewUser, INewPost, IUpdatePost, ICreateTransaction } from "@/types";
 import { account, appwriteConfig, avatars, databases, storage } from "./config";
 import { stat } from "fs";
 import { create } from "domain";
@@ -64,22 +64,36 @@ export async function signInAccount(user: { email: string; password: string;}){
     }
 }
 
+export async function getAccount() {
+    try {
+      const currentAccount = await account.get();
+  
+      return currentAccount;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
 export async function getCurrentUser() {
     try {
-        const currentAccount = await account.get();
+        const currentAccount = await getAccount();
 
-        if(!currentAccount) throw Error;
-
+        if (!currentAccount) throw Error;
+        
         const currentUser = await databases.listDocuments(
             appwriteConfig.databaseId,
             appwriteConfig.userCollectionId,
             [Query.equal('accountId', currentAccount.$id)]
-        )
-        if(!currentUser) throw Error;
+        );
+
+        if (!currentUser || !currentUser.documents || currentUser.documents.length === 0) {
+            throw new Error('No user found');
+        }
 
         return currentUser.documents[0];
     } catch (error) {
-        console.log(error)
+        console.log('Error fetching current user:', error);
+        return null; // Devuelve null en caso de error
     }
 }
 
@@ -692,3 +706,44 @@ export async function followUser(followerUsername: string, followedUsername: str
       return 0;
     }
   }
+
+  export const createTransaction = async (transaction: ICreateTransaction) => {
+    try {
+        const transactionDoc = await databases.createDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.transactionsCollectionId,
+            ID.unique(),
+            {
+                users: [transaction.userId],  // Usa el nombre correcto del atributo
+                posts: [transaction.postId],  // Usa el nombre correcto del atributo
+                amount: transaction.amount,
+                createdAt: new Date(),
+            }
+        );
+
+        return transactionDoc;
+    }catch (error) {
+        console.log(error);
+    }
+
+  }
+
+  export const getTransactionsFromPostAndUser = async (postId: string, userId: string) => {
+    try {
+        const transactions = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.transactionsCollectionId,
+            [
+                Query.equal('posts', postId),
+                Query.equal('users', userId),
+            ]
+        );
+
+        if (!transactions) throw new Error('No transactions found');
+  
+        return transactions.documents; // Assuming the result has a 'documents' field
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+}

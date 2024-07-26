@@ -22,6 +22,12 @@ export type INavLink = {
     file: File[];
   };
   
+  export type ICreateTransaction = {
+    userId: string;
+    postId: string;
+    amount: number;
+  }
+
   export type INewPost = {
     userId: string;
     caption: string;

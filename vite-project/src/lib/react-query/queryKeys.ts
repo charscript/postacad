@@ -17,6 +17,7 @@ export enum QUERY_KEYS {
     GET_RESOURCE_POSTS = "getResourcePosts",
     GET_FOLLOWED_POSTS = "getFollowedPosts",
     IS_FOLLOWING = "isFollowing",
+    GET_TRANSACTIONS_FROM_POST_AND_USER = "getTransactionsFromPostAndUser",
     
   
     //  SEARCH KEYS

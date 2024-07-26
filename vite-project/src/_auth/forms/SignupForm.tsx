@@ -20,6 +20,7 @@ import { SignupValidation } from "@/lib/validation"
 import { Link, useNavigate } from "react-router-dom"
 import { useCreateUserAccount, useSignInAccount } from "@/lib/react-query/queriesAndMutations"
 import { useUserContext } from "@/context/AuthContext"
+import { saveUserToDB } from "@/lib/appwrite/api"
 
 const SignupForm = () => {
 

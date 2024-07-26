@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useSavePost, useDeleteSavedPost, useGetCurrentUser, useLikePost } from '@/lib/react-query/queriesAndMutations';
+import { useSavePost, useDeleteSavedPost, useGetCurrentUser, useLikePost, useCreateTransaction } from '@/lib/react-query/queriesAndMutations';
 import { checkIsLiked } from '@/lib/utils';
 import { Models } from 'appwrite';
 import Loader from './loader';
@@ -35,8 +35,10 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
     const isProcessing = useRef(false); // Ref para verificar si está en proceso
 
     useEffect(() => {
-        const savedPostRecord = currentUser?.save.find((record: Models.Document) => record.post.$id === post?.$id);
-        setIsSaved(!!savedPostRecord);
+        if (currentUser && currentUser.save) {
+            const savedPostRecord = currentUser.save.find((record: Models.Document) => record.post.$id === post?.$id);
+            setIsSaved(!!savedPostRecord);
+        }
     }, [currentUser, post?.$id]);
 
     useEffect(() => {
@@ -150,6 +152,23 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
         }
     };
 
+    const { mutate: createTransaction } = useCreateTransaction();
+
+    const handlePurchaseClick = async (userId: string) => {
+        if (post?.isResource && post.price > 0) {
+            try {
+                await createTransaction({
+                    userId,
+                    postId: post.$id,
+                    amount: post.price,
+                });
+                console.log('Compra realizada con éxito');
+            } catch (error) {
+                console.error('Error al realizar la compra:', error);
+            }
+        }
+    };
+
     return (
         <div className="flex flex-col gap-4 z-20 w-full relative">
             <div className="flex flex-col gap-4 z-20">
@@ -211,7 +230,7 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
                     <Button
                         type="button"
                         className="shad-button_primary w-32 absolute left-1/2 transform -translate-x-1/2"
-                        onClick={handlePurchase}
+                        onClick={() => handlePurchaseClick(currentUser?.$id || '')}
                     >
                         Comprar
                     </Button>

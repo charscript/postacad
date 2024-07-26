@@ -25,8 +25,10 @@ import { createUserAccount,
     getFollowedPosts,
     isFollowing,
     getFileDownload,
+    createTransaction,
+    getTransactionsFromPostAndUser,
     } from '../appwrite/api'
-import { INewPost, INewUser, IUpdatePost, IUpdateUser } from "@/types";
+import { ICreateTransaction, INewPost, INewUser, IUpdatePost, IUpdateUser } from "@/types";
 import { QUERY_KEYS } from './queryKeys';
 
 
@@ -169,9 +171,11 @@ export const useGetCurrentUser = () => {
     return useQuery({
         queryKey: [QUERY_KEYS.GET_CURRENT_USER],
         queryFn: getCurrentUser,
-    })
-
-}
+        select: (data) => {
+            return data || {}; // Asegúrate de devolver un objeto vacío si los datos son null
+        }
+    });
+};
 
 export const useGetPostById = (postId: string) => {
     return useQuery({
@@ -276,4 +280,18 @@ export const useIsFollowing = (followerUsername: string, followedUsername: strin
 
 
 
-  
+export const useCreateTransaction = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (transaction: ICreateTransaction) => createTransaction(transaction),
+    });
+};
+
+export const useGetTransactionsFromPostAndUser = (postId: string, userId: string) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.GET_TRANSACTIONS_FROM_POST_AND_USER, postId, userId],
+        queryFn: () => getTransactionsFromPostAndUser(postId, userId),
+        enabled: !!postId && !!userId,
+    });
+}
