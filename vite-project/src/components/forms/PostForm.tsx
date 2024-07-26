@@ -13,14 +13,14 @@ import {
   FormMessage
 } from "@/components/ui/form";
 
-import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
-import {Textarea} from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 import { PostValidation } from "@/lib/validation";
 import { useToast } from "@/components/ui/use-toast";
 import { useUserContext } from "@/context/AuthContext";
-import FileUploader from "../shared/FileUploader"
+import FileUploader from "../shared/FileUploader";
 import Loader from "@/components/shared/loader";
 import { useCreatePost, useUpdatePost } from "@/lib/react-query/queriesAndMutations";
 import { Checkbox } from "../ui/checkbox";
@@ -30,19 +30,20 @@ import { useState } from "react";
 type PostFormProps = {
   post?: Models.Document;
   action: "Create" | "Update";
-  type: "Post" | "Resource"; 
+  type: "Post" | "Resource";
 };
 
-const PostForm = ({ post, action, type}: PostFormProps) => {
+const PostForm = ({ post, action, type }: PostFormProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useUserContext();
 
-  const {mutateAsync: createPost, isPending: isLoadingCreate } = useCreatePost();
-  const {mutateAsync: updatePost, isPending: isLoadingUpdate } = useUpdatePost();
+  const { mutateAsync: createPost, isPending: isLoadingCreate } = useCreatePost();
+  const { mutateAsync: updatePost, isPending: isLoadingUpdate } = useUpdatePost();
 
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [pdfFiles, setPdfFiles] = useState<File[]>([]);
+  const [isFree, setIsFree] = useState<boolean>(post ? post.price === 0 : true);
 
   const form = useForm<z.infer<typeof PostValidation>>({
     resolver: zodResolver(PostValidation),
@@ -59,17 +60,20 @@ const PostForm = ({ post, action, type}: PostFormProps) => {
       downloadUrl: post ? post?.downloadUrl : "https://example.com/file.pdf",
     },
   });
+  
 
-
-  // Handler
   const handleSubmit = async (value: z.infer<typeof PostValidation>) => {
-
     const allFiles = [...imageFiles, ...pdfFiles];
+
+    const postData = {
+      ...value,
+      price: isFree ? 0 : value.price,
+    };
 
     // ACTION = UPDATE
     if (post && action === "Update") {
       const updatedPost = await updatePost({
-        ...value,
+        ...postData,
         postId: post.$id,
         imageId: post.imageId,
         imageUrl: post.imageUrl,
@@ -78,15 +82,13 @@ const PostForm = ({ post, action, type}: PostFormProps) => {
 
       if (!updatedPost) {
         toast({ title: "Error al actualizar el post", description: "Intente nuevamente" });
-
       }
       return navigate(`/posts/${post.$id}`);
     }
 
-
     // ACTION = CREATE
     const newPost = await createPost({
-      ...value,
+      ...postData,
       userId: user.id,
       file: allFiles,
     });
@@ -104,7 +106,7 @@ const PostForm = ({ post, action, type}: PostFormProps) => {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleSubmit)}
-        className="flex flex-col gap-9 w-full  max-w-5xl">
+        className="flex flex-col gap-9 w-full max-w-5xl">
         <FormField
           control={form.control}
           name="caption"
@@ -153,7 +155,6 @@ const PostForm = ({ post, action, type}: PostFormProps) => {
             </FormItem>
           )}
         />
-          
 
         <FormField
           control={form.control}
@@ -161,7 +162,7 @@ const PostForm = ({ post, action, type}: PostFormProps) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel className="shad-form_label">
-              Agregar Tags (separados por coma " , ")
+                Agregar Tags (separados por coma " , ")
               </FormLabel>
               <FormControl>
                 <Input
@@ -176,39 +177,60 @@ const PostForm = ({ post, action, type}: PostFormProps) => {
           )}
         />
 
-{type === "Resource" && (
+        {type === "Resource" && (
           <>
-
-        <FormField
-          control={form.control}
-          name="file"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="shad-form_label">Agregar Archivos</FormLabel>
-              <FormControl>
-              <PdfUploader
-                fieldChange={setPdfFiles}
-                mediaUrl={post?.downloadUrl}
-              />
-              </FormControl>
-              <FormMessage className="shad-form_message" />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={form.control}
+              name="file"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="shad-form_label">Agregar Archivos</FormLabel>
+                  <FormControl>
+                    <PdfUploader
+                      fieldChange={setPdfFiles}
+                      mediaUrl={post?.downloadUrl}
+                    />
+                  </FormControl>
+                  <FormMessage className="shad-form_message" />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
               name="price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="shad-form_label">Precio</FormLabel>
+                  <FormLabel className="shad-form_label">¿Es gratuito?</FormLabel>
                   <FormControl>
-                    <Input type="number" className="shad-input" {...field}  onChange={(e) => field.onChange(Number(e.target.value))}/>
+                    <Checkbox
+                      checked={isFree}
+                      onCheckedChange={(checked) => {
+                        setIsFree(checked === true); // Asegurando que el valor sea booleano
+                        if (checked === true) form.setValue("price", 0);
+                      }}
+                    />
                   </FormControl>
                   <FormMessage className="shad-form_message" />
                 </FormItem>
               )}
             />
+
+            {!isFree && (
+              <FormField
+                control={form.control}
+                name="price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="shad-form_label">Precio</FormLabel>
+                    <FormControl>
+                      <Input type="number" className="shad-input" {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
+                    </FormControl>
+                    <FormMessage className="shad-form_message" />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}
@@ -243,7 +265,7 @@ const PostForm = ({ post, action, type}: PostFormProps) => {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="shad-form_label">Descripcion</FormLabel>
+                  <FormLabel className="shad-form_label">Descripción</FormLabel>
                   <FormControl>
                     <Textarea className="shad-textarea custom-scrollbar" {...field} />
                   </FormControl>

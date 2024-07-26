@@ -43,7 +43,9 @@ const AllUsers = () => {
         </div>
 
         {isLoading || isSearchFetching ? (
-          <Loader />
+          <div className="flex-center w-full h-full">
+            <Loader />
+          </div>
         ) : (
           <ul className="user-grid">
             {usersToDisplay?.map((user) => (

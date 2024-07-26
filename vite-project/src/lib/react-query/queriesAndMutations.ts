@@ -22,6 +22,8 @@ import { createUserAccount,
     searchUsers,
     getUserById,
     searchPostsWithImages,
+    getFollowedPosts,
+    isFollowing,
     } from '../appwrite/api'
 import { INewPost, INewUser, IUpdatePost, IUpdateUser } from "@/types";
 import { QUERY_KEYS } from './queryKeys';
@@ -66,6 +68,13 @@ export const useGetRecentPosts = () => {
     })
 }
 
+export const useGetFollowedPosts = () => {
+    return useQuery({
+      queryKey: [QUERY_KEYS.GET_FOLLOWED_POSTS],
+      queryFn: getFollowedPosts,
+    });
+  };
+
 export const useLikePost = () => {
     const queryClient = useQueryClient();
 
@@ -93,40 +102,46 @@ export const useSavePost = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({postId, userId} : {postId: string; userId: string}) => savePost(postId, userId),
+        mutationFn: async ({ postId, userId }: { postId: string; userId: string }) => {
+            // Llama a la función savePost y espera su respuesta
+            return await savePost(postId, userId);
+        },
         onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: [QUERY_KEYS.GET_RECENT_POSTS]
-            })
-            queryClient.invalidateQueries({
-                queryKey: [QUERY_KEYS.GET_POSTS]
-            })
-            queryClient.invalidateQueries({
-                queryKey: [QUERY_KEYS.GET_CURRENT_USER]
-            })
-        }
-    })
-
-}
-
+            // Invalidar consultas para asegurar que los datos sean actualizados
+            queryClient.invalidateQueries({queryKey:[QUERY_KEYS.GET_RECENT_POSTS]});
+            queryClient.invalidateQueries({queryKey:[QUERY_KEYS.GET_POSTS]});
+            queryClient.invalidateQueries({queryKey:[QUERY_KEYS.GET_CURRENT_USER]});
+        },
+        onError: (error: any) => {
+            // Manejar errores aquí si es necesario
+            console.error('Error saving post:', error);
+        },
+        // Puedes agregar configuraciones adicionales aquí si es necesario
+    });
+};
 export const useDeleteSavedPost = () => {
     const queryClient = useQueryClient();
 
-    return useMutation({ mutationFn: (savedRecordId: string) => deleteSavedPost(savedRecordId),
+    return useMutation({
+        mutationFn: (savedRecordId: string) => deleteSavedPost(savedRecordId),
+        onMutate: () => {
+            // Opcional: Puedes realizar una actualización optimista aquí
+        },
         onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: [QUERY_KEYS.GET_RECENT_POSTS]
-            })
-            queryClient.invalidateQueries({
-                queryKey: [QUERY_KEYS.GET_POSTS]
-            })
-            queryClient.invalidateQueries({
-                queryKey: [QUERY_KEYS.GET_CURRENT_USER]
-            })
-        }
-    })
+            queryClient.invalidateQueries({queryKey:[QUERY_KEYS.GET_RECENT_POSTS]});
+            queryClient.invalidateQueries({queryKey:[QUERY_KEYS.GET_POSTS]});
+            queryClient.invalidateQueries({queryKey:[QUERY_KEYS.GET_CURRENT_USER]});
+        },
+        onError: (error) => {
+            // Manejo de errores si es necesario
+            console.error('Error deleting saved post:', error);
+        },
+        onSettled: () => {
+            // Puedes usar esto para realizar acciones una vez que la mutación se haya completado (ya sea con éxito o error)
+        },
+    });
+};
 
-}
 
 export const useGetCurrentUser = () => {
     return useQuery({
@@ -224,6 +239,17 @@ export const useGetUserById = (userId: string) => {
         enabled: !!userId,
     });
 };
+
+export const useIsFollowing = (followerUsername: string, followedUsername: string) => {
+
+    return useQuery({
+      queryKey: [QUERY_KEYS.IS_FOLLOWING, followerUsername, followedUsername],
+      queryFn: () => isFollowing(followerUsername, followedUsername),
+      enabled: !!followerUsername && !!followedUsername,
+    });
+
+}
+
 
 
 

@@ -1,30 +1,78 @@
-import { useDeleteSavedPost, useGetCurrentUser, useLikePost, useSavePost } from '@/lib/react-query/queriesAndMutations';
+import { useState, useEffect, useRef } from 'react';
+import { useSavePost, useDeleteSavedPost, useGetCurrentUser, useLikePost } from '@/lib/react-query/queriesAndMutations';
 import { checkIsLiked } from '@/lib/utils';
 import { Models } from 'appwrite';
-import React, { useState, useEffect } from 'react';
 import Loader from './loader';
+import { Button } from '@/components/ui/button';  // Asegúrate de importar el componente Button
+import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from '@/components/ui/drawer';  // Asegúrate de importar el Drawer
 
 type PostStatsProps = {
     post?: Models.Document;
     userId: string;
+    handlePurchase?: () => void;  // Añadir handlePurchase como prop opcional
 };
 
-const PostStats = ({ post, userId }: PostStatsProps) => {
-    const likesList = post?.likes.map((user: Models.Document) => user.$id) || [];
+const COOLDOWN_TIME = 1000; // Tiempo en milisegundos para el cooldown
 
+type QueueItem = {
+    action: 'save' | 'delete';
+    postId?: string;
+    recordId?: string;
+};
+
+const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
+    const likesList = post?.likes.map((user: Models.Document) => user.$id) || [];
     const [likes, setLikes] = useState(likesList);
     const [isSaved, setIsSaved] = useState(false);
+    const [queue, setQueue] = useState<QueueItem[]>([]); // Cola de solicitudes
+    const [drawerOpen, setDrawerOpen] = useState(false); // Estado del Drawer
 
     const { mutate: likePost } = useLikePost();
     const { mutate: savePost, status: savePostStatus } = useSavePost();
     const { mutate: deleteSavedPost, status: deleteSavedPostStatus } = useDeleteSavedPost();
 
     const { data: currentUser } = useGetCurrentUser();
+    const isProcessing = useRef(false); // Ref para verificar si está en proceso
 
     useEffect(() => {
         const savedPostRecord = currentUser?.save.find((record: Models.Document) => record.post.$id === post?.$id);
         setIsSaved(!!savedPostRecord);
     }, [currentUser, post?.$id]);
+
+    useEffect(() => {
+        const processQueue = async () => {
+            if (isProcessing.current || queue.length === 0) return; // Evita procesar múltiples veces al mismo tiempo
+
+            isProcessing.current = true;
+
+            while (queue.length > 0) {
+                const item = queue.shift(); // Extrae el primer elemento de la cola
+                if (item) {
+                    const { action, postId, recordId } = item;
+
+                    try {
+                        if (action === 'save' && postId) {
+                            await savePost({ postId, userId });
+                            console.log('Post saved successfully');
+                        } else if (action === 'delete' && recordId) {
+                            await deleteSavedPost(recordId);
+                            console.log('Post successfully deleted');
+                        }
+                    } catch (error) {
+                        console.error(`Error processing ${action} action:`, error);
+                        // Manejo de errores si es necesario
+                    }
+
+                    // Espera el tiempo del cooldown antes de procesar el siguiente
+                    await new Promise(resolve => setTimeout(resolve, COOLDOWN_TIME));
+                }
+            }
+
+            isProcessing.current = false;
+        };
+
+        processQueue();
+    }, [queue, savePost, deleteSavedPost]);
 
     const handleLikePost = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -43,69 +91,131 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
 
     const handleSavePost = (e: React.MouseEvent) => {
         e.stopPropagation();
-        // Actualizar el estado isSaved inmediatamente
-        setIsSaved((prevIsSaved) => !prevIsSaved);
+
+        // Actualiza inmediatamente el estado del botón
+        setIsSaved(prevIsSaved => !prevIsSaved);
 
         const savedPostRecord = currentUser?.save.find((record: Models.Document) => record.post.$id === post?.$id);
 
+        // Encola la solicitud para procesarla después del cooldown
         if (savedPostRecord) {
-            deleteSavedPost(savedPostRecord.$id, {
-                onSuccess: () => {
-                    setIsSaved(false);
-                },
-                onError: () => {
-                    // Revertir el estado si ocurre un error
-                    setIsSaved(true);
-                },
-            });
+            console.log('Queueing delete request with ID:', savedPostRecord.$id);
+            setQueue(prevQueue => [...prevQueue, { action: 'delete', recordId: savedPostRecord.$id }]);
         } else {
-            savePost({ postId: post?.$id || '', userId }, {
-                onSuccess: () => {
-                    setIsSaved(true);
-                },
-                onError: () => {
-                    // Revertir el estado si ocurre un error
-                    setIsSaved(false);
-                },
-            });
+            console.log('Queueing save request for post with ID:', post?.$id);
+            setQueue(prevQueue => [...prevQueue, { action: 'save', postId: post?.$id || '' }]);
         }
     };
 
     const isMutating = savePostStatus === 'pending' || deleteSavedPostStatus === 'pending';
 
     return (
-        <div className="flex justify-between items-center z-20">
-            <div className="flex gap-2 mr-5">
-                <img
-                    src={checkIsLiked(likes, userId)
-                        ? "/assets/icons/liked.svg"
-                        : "/assets/icons/like.svg"}
-                    alt="like"
-                    width={20}
-                    height={20}
-                    onClick={handleLikePost}
-                    className="cursor-pointer"
-                />
-                <p className="small-medium lg:base-medium">{likes.length}</p>
-            </div>
+        <div className="flex flex-col gap-4 z-20 w-full relative"> {/* Añade relative aquí */}
+            <div className="flex flex-col gap-4 z-20">
+                <div className="flex justify-between w-full">
+                    <div className="flex items-center gap-2">
+                        <div className="flex gap-2">
+                            <img
+                                src={checkIsLiked(likes, userId)
+                                    ? "/assets/icons/liked.svg"
+                                    : "/assets/icons/like.svg"}
+                                alt="like"
+                                width={20}
+                                height={20}
+                                onClick={handleLikePost}
+                                className="cursor-pointer"
+                            />
+                            <p className="small-medium lg:base-medium">{likes.length}</p>
+                        </div>
 
-            <div className="flex gap-2">
-                {isMutating ? (
-                    <div className="loader-icon-resize">
-                        <Loader />
+                        {/* Botón de descarga solo si es un recurso o tiene imagen */}
+                        {(post?.isResource || post?.imageUrl !== 'https://example.com/default-image.jpg') && (
+                            <Button
+                                type="button"
+                                className="cursor-pointer"
+                                onClick={() => setDrawerOpen(true)}
+                            >
+                                <img
+                                    src="/assets/icons/download.svg"
+                                    alt="download"
+                                    width={20}
+                                    height={20}
+                                />
+                            </Button>
+                        )}
                     </div>
-                ) : (
-                    <img
-                        src={isSaved
-                            ? "/assets/icons/saved.svg"
-                            : "/assets/icons/save.svg"}
-                        alt="save"
-                        width={20}
-                        height={20}
-                        onClick={handleSavePost}
-                        className={`cursor-pointer ${isMutating ? 'cursor-not-allowed' : ''}`}
-                    />
+
+                    <div className="flex gap-2">
+                        {isMutating ? (
+                            <div className="loader-icon-resize">
+                                <Loader />
+                            </div>
+                        ) : (
+                            <img
+                                src={isSaved
+                                    ? "/assets/icons/saved.svg"
+                                    : "/assets/icons/save.svg"}
+                                alt="save"
+                                width={20}
+                                height={20}
+                                onClick={handleSavePost}
+                                className={`cursor-pointer ${isMutating ? 'cursor-not-allowed' : ''}`}
+                            />
+                        )}
+                    </div>
+                </div>
+
+                {/* Contenedor para el botón de "Comprar" */}
+                {post?.isResource && post.price > 0 && post.creator && userId !== post.creator.$id && handlePurchase && (
+                    <Button
+                        type="button"
+                        className="shad-button_primary w-32 absolute left-1/2 transform -translate-x-1/2" // Estilo absoluto para centrar
+                        onClick={handlePurchase}
+                    >
+                        Comprar
+                    </Button>
                 )}
+
+                <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+                    <DrawerContent className="bg-dark-1">
+                        <div className="mx-auto max-w-sm">
+                            <DrawerHeader>
+                                <DrawerTitle>Opciones de Descarga</DrawerTitle>
+                                <DrawerDescription>Selecciona una opción para descargar.</DrawerDescription>
+                            </DrawerHeader>
+                        </div>
+                        
+                        <div className="flex items-center justify-center gap-4 p-4">
+                            <Button
+                                variant="outline"
+                                className="shad-button_primary w-64"
+                                onClick={() => {
+                                    // Implementa la lógica para descargar la foto
+                                    console.log('Descargando foto...');
+                                }}
+                            >
+                                Descargar Foto
+                            </Button>
+                            <Button
+                                variant="outline"
+                                className="shad-button_primary w-64"
+                                onClick={() => {
+                                    // Implementa la lógica para descargar el archivo
+                                    console.log('Descargando archivo...');
+                                }}
+                            >
+                                Descargar Archivo
+                            </Button>
+                        </div>
+                        <DrawerFooter>
+                            <div className="flex items-center justify-center">
+                                <DrawerClose asChild>
+                                    <Button variant="outline" className="shad-button_dark_4 w-64">Cerrar</Button>
+                                </DrawerClose>
+                            </div>
+                        </DrawerFooter>
+                    </DrawerContent>
+                </Drawer>
             </div>
         </div>
     );

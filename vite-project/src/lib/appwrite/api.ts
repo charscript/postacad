@@ -2,6 +2,7 @@ import { ID, ImageGravity, Query} from "appwrite";
 import { INewUser, INewPost, IUpdatePost } from "@/types";
 import { account, appwriteConfig, avatars, databases, storage } from "./config";
 import { stat } from "fs";
+import { create } from "domain";
 
 export async function createUserAccount(user: INewUser) {
     try {
@@ -237,6 +238,48 @@ export async function getRecentPosts() {
     
 }
 
+async function getFollowedUserIds() {
+    try {
+      const currentUser = await getCurrentUser();
+  
+      if (!currentUser) throw new Error('User not found');
+  
+      const followedUsers = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.followsCollectionId, // Asumimos que esta es la colección que almacena las relaciones de seguimiento
+        [Query.equal('followerId', currentUser.$id)]
+      );
+  
+      if (!followedUsers || followedUsers.documents.length === 0) return [];
+  
+      // Extraemos los IDs de los usuarios seguidos
+      const followedUserIds = followedUsers.documents.map((doc: any) => doc.followedId);
+      return followedUserIds;
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
+  }
+
+  export async function getFollowedPosts() {
+    try {
+      const followedUsers = await getFollowedUserIds();
+  
+      if (followedUsers.length === 0) return { documents: [] };
+  
+      const posts = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.postCollectionId,
+        [Query.equal('creator', followedUsers), Query.orderDesc('$createdAt'), Query.limit(20)]
+      );
+  
+      if (!posts) throw Error;
+      return posts;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
 export async function likePost(postId: string, likesArray: string[]){
     try {
         const updatedPost = await databases.updateDocument(
@@ -256,8 +299,23 @@ export async function likePost(postId: string, likesArray: string[]){
     }
 }
 
-export async function savePost(postId: string, userId: string){
+export async function savePost(postId: string, userId: string) {
     try {
+        // Verificar si el post ya está guardado por el usuario
+        const existingSaves = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.savesCollectionId,
+            [
+                Query.equal('user', userId),
+                Query.equal('post', postId)
+            ]
+        );
+
+        if (existingSaves.total > 0) {
+            // Ya existe un registro de guardado
+            return { status: 'error', message: 'Post already saved' };
+        }
+
         const updatedPost = await databases.createDocument(
             appwriteConfig.databaseId,
             appwriteConfig.savesCollectionId,
@@ -266,13 +324,14 @@ export async function savePost(postId: string, userId: string){
                 user: userId,
                 post: postId,
             }
-        )
-        
-        if(!updatedPost) throw Error;
+        );
 
-        return updatedPost;
+        if (!updatedPost) throw new Error('Failed to save post');
+
+        return { status: 'ok', data: updatedPost };
     } catch (error) {
-        console
+        console.error('Error saving post:', error);
+        return { status: 'error', message: error instanceof Error ? error.message : 'Unknown error' };
     }
 }
 
@@ -282,13 +341,14 @@ export async function deleteSavedPost(savedRecordId: string){
             appwriteConfig.databaseId,
             appwriteConfig.savesCollectionId,
             savedRecordId,
-        )
+        );
         
-        if(!statusCode) throw Error;
+        if (!statusCode) throw new Error('Failed to delete saved post');
 
-        return {status: "ok"};
+        return { status: "ok" };
     } catch (error) {
-        console
+        console.error('Error deleting saved post:', error);
+        return { status: 'error', message: error instanceof Error ? error.message : 'Unknown error' };
     }
 }
 
@@ -508,23 +568,66 @@ export async function getUserById(userId: string) {
     }
   }
 
+  export async function isFollowing(followerUsername: string, followedUsername: string) {
+    try {
+        const follows = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.followsCollectionId,
+            [
+                Query.equal('followerUsername', followerUsername),
+                Query.equal('followedUsername', followedUsername)
+            ]
+        );
+  
+        if (follows.total > 0) {
+            return true;
+        }
+        else{
+            return false;
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
   /////////parte a prueba!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 // Función para seguir a un usuario
 // Función para seguir a un usuario
 export async function followUser(followerUsername: string, followedUsername: string) {
+       
     try {
-      // Crear documento de seguimiento
-      await databases.createDocument(
-        appwriteConfig.databaseId,
-        appwriteConfig.followsCollectionId,
-        ID.unique(),
-        { followerUsername, followedUsername, createdAt: new Date() }
-      );
+    const existingFollows = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.followsCollectionId,
+            [
+                Query.equal('followerUsername', followerUsername),
+                Query.equal('followedUsername', followedUsername)
+            ]
+        );
+        if (existingFollows.total > 0) {
+            // Ya existe un registro de guardado
+            return { status: 'error', message: 'Post already saved' };
+        }
+
+        const updatedFollow = await databases.createDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.followsCollectionId,
+            ID.unique(),
+            {
+                followerUsername: followerUsername,
+                followedUsername: followedUsername,
+                createdAt: new Date()
+            }
+        );
+        if (!updatedFollow) throw new Error('Failed to save post');
+
+        return { status: 'ok', data: updatedFollow };
     } catch (error) {
-      console.log(error);
+        console.error('Error saving post:', error);
+        return { status: 'error', message: error instanceof Error ? error.message : 'Unknown error' };
     }
-  }
+}
   
   export async function unfollowUser(followerUsername: string, followedUsername: string) {
     try {
