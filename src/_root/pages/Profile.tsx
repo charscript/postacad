@@ -1,5 +1,5 @@
 import { useUserContext } from '@/context/AuthContext';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, Outlet, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { useGetUserById, useIsFollowing } from '@/lib/react-query/queriesAndMutations';
 import Loader from '@/components/shared/loader';
@@ -41,7 +41,7 @@ const Profile = () => {
         const following = await getFollowingCount(currentUser.username);
         const posts = currentUser.posts.length;
         const resources = currentUser.posts.filter((post: INewPost) => post.isResource).length;
-        
+
         setFollowersCount(followers);
         setFollowingCount(following);
         setPostsCount(posts);
@@ -117,9 +117,8 @@ const Profile = () => {
             <div className={`${user.id !== currentUser.$id && "hidden"}`}>
               <Link
                 to={`/update-profile/${currentUser.$id}`}
-                className={`h-12 bg-dark-4 px-5 text-light-1 flex-center gap-2 rounded-lg ${
-                  user.id !== currentUser.$id && "hidden"
-                }`}
+                className={`h-12 bg-dark-4 px-5 text-light-1 flex-center gap-2 rounded-lg ${user.id !== currentUser.$id && "hidden"
+                  }`}
               >
                 <img
                   src={"/assets/icons/edit.svg"}
@@ -162,9 +161,8 @@ const Profile = () => {
         <div className="flex max-w-5xl w-full">
           <Link
             to={`/profile/${id}`}
-            className={`profile-tab rounded-l-lg ${
-              pathname === `/profile/${id}` && "!bg-dark-3"
-            }`}
+            className={`profile-tab rounded-l-lg ${pathname === `/profile/${id}` && "!bg-dark-3"
+              }`}
           >
             <img
               src={"/assets/icons/posts.svg"}
@@ -176,9 +174,8 @@ const Profile = () => {
           </Link>
           <Link
             to={`/profile/${id}/liked-posts`}
-            className={`profile-tab rounded-r-lg ${
-              pathname === `/profile/${id}/liked-posts` && "!bg-dark-3"
-            }`}
+            className={`profile-tab rounded-r-lg ${pathname === `/profile/${id}/liked-posts` && "!bg-dark-3"
+              }`}
           >
             <img
               src={"/assets/icons/like.svg"}

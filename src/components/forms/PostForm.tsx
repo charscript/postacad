@@ -29,8 +29,8 @@ import { useState } from "react";
 
 type PostFormProps = {
   post?: Models.Document;
-  action: "Create" | "Update";
-  type: "Post" | "Resource";
+  action: string;
+  type?: "Post" | "Resource";
 };
 
 const PostForm = ({ post, action, type }: PostFormProps) => {
@@ -128,7 +128,7 @@ const PostForm = ({ post, action, type }: PostFormProps) => {
         <FormField
           control={form.control}
           name="file"
-          render={({ field }) => (
+          render={() => (
             <FormItem>
               <FormLabel className="shad-form_label">Agregar Fotos</FormLabel>
               <FormControl>
@@ -182,7 +182,7 @@ const PostForm = ({ post, action, type }: PostFormProps) => {
             <FormField
               control={form.control}
               name="file"
-              render={({ field }) => (
+              render={() => (
                 <FormItem>
                   <FormLabel className="shad-form_label">Agregar Archivos</FormLabel>
                   <FormControl>
@@ -199,7 +199,7 @@ const PostForm = ({ post, action, type }: PostFormProps) => {
             <FormField
               control={form.control}
               name="price"
-              render={({ field }) => (
+              render={() => (
                 <FormItem>
                   <FormLabel className="shad-form_label">¿Es gratuito?</FormLabel>
                   <FormControl>

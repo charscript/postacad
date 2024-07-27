@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useSavePost, useDeleteSavedPost, useGetCurrentUser, useLikePost, useCreateTransaction, useGetTransactionsFromPostAndUser } from '@/lib/react-query/queriesAndMutations';
 import { checkIsLiked } from '@/lib/utils';
 import { Models } from 'appwrite';
-import Loader from './loader';
 import { Button } from '@/components/ui/button';
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from '@/components/ui/drawer';
 import { useGetFileDownload } from '@/lib/react-query/queriesAndMutations';
@@ -172,7 +171,7 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
                 if (!user.id) {
                     throw new Error('Usuario no autenticado');
                 }
-                console.log(user.id,' esta comprando post con ID:', post.$id, 'posteado por el usuario con ID:', userId);
+                console.log(user.id, ' esta comprando post con ID:', post.$id, 'posteado por el usuario con ID:', userId);
                 await createTransaction(); // Llama a la función de mutación
                 console.log('Compra realizada con éxito');
             } catch (error) {
@@ -227,28 +226,28 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
                             </Button>
                         )}
                     </div>
-                    
+
                     {post.isResource && post.price > 0 && post.creator && userId !== post.creator.$id && (post.fileId || post.imageId) && canPurchase && handlePurchase && (
-                    <div className="flex">
-                        
-                        <div className="flex mb-10 hidden md:block">
-                            <Button
-                                type="button"
-                                className="shad-button_primary w-32 absolute left-1/2 transform -translate-x-1/2"
-                                onClick={() => handlePurchaseClick()}
-                            >
-                                Comprar
-                            </Button>
+                        <div className="flex">
+
+                            <div className=" mb-10 hidden md:block">
+                                <Button
+                                    type="button"
+                                    className="shad-button_primary w-32 absolute left-1/2 transform -translate-x-1/2"
+                                    onClick={() => handlePurchaseClick()}
+                                >
+                                    Comprar
+                                </Button>
+                            </div>
+
+
+
                         </div>
-
-
-                        
-                    </div>
                     )}
-                    
+
                     <div className="flex gap-2">
-                        
-                    {post.isResource && post.price > 0 && post.creator && userId !== post.creator.$id && (post.fileId || post.imageId) && canPurchase && handlePurchase && (
+
+                        {post.isResource && post.price > 0 && post.creator && userId !== post.creator.$id && (post.fileId || post.imageId) && canPurchase && handlePurchase && (
                             <div className="sm:block md:hidden content-center">
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
@@ -269,7 +268,7 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
                                     </AlertDialogContent>
                                 </AlertDialog>
                             </div>)}
-                        
+
                         <img
                             src={isSaved ? "/assets/icons/save-filled.svg" : "/assets/icons/save.svg"}
                             alt="save"
@@ -280,37 +279,37 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
                         />
                     </div>
 
-                    
+
                 </div>
             </div>
 
-            
-                    <div className="hidden">
-                        <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Este recurso está bloqueado. Necesitas comprarlo para acceder a la descarga.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel onClick={() => setShowAlert(false)}>Cancelar</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => setDrawerOpen(true)}>Comprar</AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    </div>
-                
+
+            <div className="hidden">
+                <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Este recurso está bloqueado. Necesitas comprarlo para acceder a la descarga.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel onClick={() => setShowAlert(false)}>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => setDrawerOpen(true)}>Comprar</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </div>
+
 
             <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
                 <DrawerContent className="bg-dark-1">
-                        <div className="mx-auto max-w-sm">
-                            <DrawerHeader>
-                                <DrawerTitle>Opciones de Descarga</DrawerTitle>
-                                <DrawerDescription>Selecciona una opción para descargar.</DrawerDescription>
-                            </DrawerHeader>
-                        </div>
+                    <div className="mx-auto max-w-sm">
+                        <DrawerHeader>
+                            <DrawerTitle>Opciones de Descarga</DrawerTitle>
+                            <DrawerDescription>Selecciona una opción para descargar.</DrawerDescription>
+                        </DrawerHeader>
+                    </div>
                     <div className="flex items-center justify-center gap-4 p-4">
                         <Button onClick={handleDownloadImage} disabled={!post.imageId} className="shad-button_primary w-64" variant="outline">Descargar Foto</Button>
                         <Button onClick={handleDownloadFile} disabled={!post.fileId} className="shad-button_primary w-64" variant="outline">Descargar Archivo</Button>
@@ -320,7 +319,7 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
                             <DrawerClose asChild>
                                 <Button variant="outline" className="shad-button_dark_4 w-64">Cerrar</Button>
                             </DrawerClose>
-                            </div>
+                        </div>
                     </DrawerFooter>
                 </DrawerContent>
             </Drawer>

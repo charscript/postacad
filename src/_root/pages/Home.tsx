@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Loader from '@/components/shared/loader';
 import { useGetRecentPosts, useGetFollowedPosts, useGetUsers } from '@/lib/react-query/queriesAndMutations';
 import { Models } from 'appwrite';
 import PostCard from '@/components/shared/PostCard';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -95,23 +95,23 @@ const Home = () => {
 
         {showCreators && (
           <div className={` ${showCreators ? 'show home-creators sm:block' : 'hidden'}`}>
-          <h3 className="h3-bold text-light-1 mb-7">Creadores Destacados</h3>
-          {isUserLoading && !creators ? (
-            <Loader />
-          ) : (
-            <ul className="grid 2xl:grid-cols-2 gap-6">
-              {creators?.documents.map((creator: Models.Document) => (
-                <li key={creator?.$id}>
-                  <UserCard user={creator} />
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+            <h3 className="h3-bold text-light-1 mb-7">Creadores Destacados</h3>
+            {isUserLoading && !creators ? (
+              <Loader />
+            ) : (
+              <ul className="grid 2xl:grid-cols-2 gap-6">
+                {creators?.documents.map((creator: Models.Document) => (
+                  <li key={creator?.$id}>
+                    <UserCard user={creator} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
-        
-        
-        
+
+
+
       </div>
     </div>
   );

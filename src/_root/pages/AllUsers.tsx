@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { useGetUsers, useSearchUsers } from '@/lib/react-query/queriesAndMutations';
 import { Loader } from 'lucide-react';

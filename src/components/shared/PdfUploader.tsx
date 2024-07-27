@@ -13,6 +13,8 @@ const PdfUploader = ({ fieldChange, mediaUrl }: PdfUploaderProps) => {
   const [file, setFile] = useState<File[]>([]);
   const [fileUrl, setFileUrl] = useState<string>(mediaUrl);
 
+  console.log(file);
+
   const onDrop = useCallback(
     (acceptedFiles: FileWithPath[]) => {
       setFile(acceptedFiles);

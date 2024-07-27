@@ -1,9 +1,8 @@
-import {Routes, Route} from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 
 import './globals.css';
 
 import { Toaster } from "@/components/ui/toaster";
-import React from 'react'
 import SigninForm from './_auth/forms/SigninForm';
 import AuthLayout from './_auth/AuthLayout';
 import { AllUsers, CreatePost, EditPost, Explore, Home, PostDetails, Profile, Saved, UpdateProfile, CreateResource } from './_root/pages';
@@ -12,8 +11,8 @@ import RootLayout from './_root/RootLayout';
 import ConditionPostForm from './_root/pages/ConditionPostForm';
 
 const App = () => {
-  return (
-    <main className="flex h-screen">
+    return (
+        <main className="flex h-screen">
             <Routes>
                 {/* public routes */}
                 <Route element={<AuthLayout />}>
@@ -40,7 +39,7 @@ const App = () => {
 
             <Toaster />
         </main>
-  )
+    )
 }
 
 export default App

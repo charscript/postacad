@@ -1,7 +1,6 @@
 import { useUserContext } from '@/context/AuthContext';
 import { formatDate } from '@/lib/utils';
 import { Models } from 'appwrite';
-import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import PostStats from './PostStats';
 
@@ -11,13 +10,9 @@ type TextCardProps = {
 
 const TextCard = ({ post }: TextCardProps) => {
   const { user } = useUserContext();
-  const [showFullCaption, setShowFullCaption] = useState(false);
 
   if (!post.creator) return null;
 
-  const toggleCaption = () => {
-    setShowFullCaption(!showFullCaption);
-  };
 
   return (
     <div className="post-card">

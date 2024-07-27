@@ -3,8 +3,6 @@ import { FileWithPath, useDropzone } from "react-dropzone";
 
 import { Button } from "../ui/button";
 import { convertFileToUrl } from "@/lib/utils";
-import { z, ZodPipeline } from "zod";
-import { RadioReceiver } from "lucide-react";
 import { useToast } from "../ui/use-toast";
 
 type FileUploaderProps = {
@@ -16,37 +14,37 @@ const FileUploader = ({ fieldChange, mediaUrl }: FileUploaderProps) => {
   const [file, setFile] = useState<File[]>([]);
   const [fileUrl, setFileUrl] = useState<string>(mediaUrl);
   const maxSize = 3 * 1024 * 1024;
-  const { toast} = useToast()
+  const { toast } = useToast()
 
   const onDrop = useCallback(
     (acceptedFiles: FileWithPath[]) => {
-        const validFiles = acceptedFiles.filter(file => {
-            if (file.size > maxSize) {
-              return toast({
-                title: "El tamaño del archivo no puede ser superior a 3 MB"
-              }) && false;
-            }
-            return true;
-          });
+      const validFiles = acceptedFiles.filter(file => {
+        if (file.size > maxSize) {
+          return toast({
+            title: "El tamaño del archivo no puede ser superior a 3 MB"
+          }) && false;
+        }
+        return true;
+      });
 
-          if (validFiles.length > 0) {
-            setFile(validFiles);
-            fieldChange(validFiles);
-            setFileUrl(convertFileToUrl(validFiles[0]));
-          }
+      if (validFiles.length > 0) {
+        setFile(validFiles);
+        fieldChange(validFiles);
+        setFileUrl(convertFileToUrl(validFiles[0]));
+      }
 
     },
     [file]
   );
 
-  
+
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: {
       "image/*": [".png", ".jpeg", ".jpg"],
     },
   });
-  
+
 
   return (
     <div

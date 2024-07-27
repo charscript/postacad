@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import React from "react";
 
 const ConditionPostForm = () => {
   const navigate = useNavigate();
