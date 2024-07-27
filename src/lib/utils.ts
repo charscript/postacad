@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export const convertFileToUrl = (file: File) => URL.createObjectURL(file);
 
-export function formatDate(dateString: string | undefined, defaultValue: string = 'Justo ahora'): string {
+export function formatDate(dateString: string | undefined, defaultValue = 'Justo ahora'): string {
   
   if(!dateString) return defaultValue;
   
@@ -35,7 +35,7 @@ export function formatDate(dateString: string | undefined, defaultValue: string 
 }
 
 // 
-export const multiFormatDateString = (timestamp: string = ""): string => {
+export const multiFormatDateString = (timestamp = ""): string => {
   const timestampNum = Math.round(new Date(timestamp).getTime() / 1000);
   const date: Date = new Date(timestampNum * 1000);
   const now: Date = new Date();

@@ -24,13 +24,13 @@ import { saveUserToDB } from "@/lib/appwrite/api"
 
 const SignupForm = () => {
 
-  const { toast} = useToast()
-  const { checkAuthUser, isLoading: isUserLoading} = useUserContext();
+  const { toast } = useToast()
+  const { checkAuthUser, isLoading: isUserLoading } = useUserContext();
   const navigate = useNavigate()
 
-  const { mutateAsync: createUserAccount, isPending: isCreatingAccount} = useCreateUserAccount();
+  const { mutateAsync: createUserAccount, isPending: isCreatingAccount } = useCreateUserAccount();
 
-  const { mutateAsync: signInAccount, isPending: isSigningIn} = useSignInAccount();
+  const { mutateAsync: signInAccount, isPending: isSigningIn } = useSignInAccount();
   // 1. Define your form.
   const form = useForm<z.infer<typeof SignupValidation>>({
     resolver: zodResolver(SignupValidation),
@@ -41,11 +41,11 @@ const SignupForm = () => {
       password: "",
     },
   })
- 
+
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof SignupValidation>) {
     const newUser = await createUserAccount(values);
-    if(!newUser){
+    if (!newUser) {
       return toast({
         title: "Registro fallido, por favor intentalo de nuevo"
       });
@@ -54,15 +54,15 @@ const SignupForm = () => {
     const session = await signInAccount({
       email: values.email,
       password: values.password,
-    }) 
-    if(!session){
+    })
+    if (!session) {
       return toast({
         title: "Inicio de sesión fallido, por favor intentalo de nuevo"
       });
     }
     const isLoggedIn = await checkAuthUser();
 
-    if(isLoggedIn){
+    if (isLoggedIn) {
       form.reset();
       navigate("/")
     } else {
@@ -71,7 +71,7 @@ const SignupForm = () => {
   }
 
   return (
-    
+
     <Form {...form}>
 
       <div className="sm:w-420 flex-center flex-col">
@@ -80,7 +80,7 @@ const SignupForm = () => {
 
         <h2 className="h3-bold md:h2-bold pt-5 sm:pt-12">Crea una cuenta</h2>
         <p className="text-light-3 small-medium md:base-regular mt-8 mb-5">Crea tu cuenta para poder acceder al ecosistema.</p>
-      
+
 
 
 
@@ -116,7 +116,7 @@ const SignupForm = () => {
           <FormField
             control={form.control}
             name="email"
-            rules={{ required: true, pattern: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/ }}
+            rules={{ required: true, pattern: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/ }}
             shouldUnregister
             render={({ field }) => (
               <FormItem>
@@ -145,8 +145,8 @@ const SignupForm = () => {
           <Button type="submit" className="shad-button_primary mt-10">
             {isCreatingAccount ? (
               <div className="flex-center gap-2">
-                <Loader/> Cargando...
-                
+                <Loader /> Cargando...
+
               </div>
             ) : "Registrarse"}
           </Button>

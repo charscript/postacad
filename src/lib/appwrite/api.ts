@@ -110,7 +110,7 @@ export async function createPost(post: INewPost) {
     try {
         let fileUrl = 'https://example.com/default-image.jpg';
         let imageId = '';
-        let downloadUrl = 'https://example.com/default-image.jpg';
+        const downloadUrl = 'https://example.com/default-image.jpg';
         let fileId = '';
         let imageUrl = 'https://example.com/default-image.jpg';
 

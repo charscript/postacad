@@ -187,7 +187,7 @@ export const useUpdatePost = () => {
     return useMutation({
         mutationFn: (post: IUpdatePost) => updatePost(post),
         onSuccess: (data) => {
-            queryKey: [QUERY_KEYS.GET_POST_BY_ID, data?.$id]
+            [QUERY_KEYS.GET_POST_BY_ID, data?.$id]
         }
     })
 }
@@ -197,7 +197,7 @@ export const useDeletePost = () => {
     return useMutation({
         mutationFn: ({ postId, imageId}: {postId: string, imageId: string}) => deletePost(postId, imageId),
         onSuccess: (data) => {
-            queryKey: [QUERY_KEYS.GET_RECENT_POSTS]
+            [QUERY_KEYS.GET_RECENT_POSTS]
         }
     })
 }

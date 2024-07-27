@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { getCurrentUser } from '@/lib/appwrite/api';
 import { IContextType, IUser } from '@/types';
-import {createContext, useContext, useState, useEffect} from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 import { isAborted } from 'zod';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,24 +18,24 @@ const INITIAL_STATE = {
     user: INITIAL_USER,
     isLoading: false,
     isAuthenticated: false,
-    setUser: () => {},
-    setIsAuthenticated: () => {},
+    setUser: () => { },
+    setIsAuthenticated: () => { },
     checkAuthUser: async () => false as boolean,
 }
 
 const AuthContext = createContext<IContextType>(INITIAL_STATE);
 
-const AuthProvider = ({ children } : { children: React.ReactNode }) => {
-    const [ user, setUser ] = useState<IUser>(INITIAL_USER);
-    const [ isLoading, setIsLoading ] = useState(false);
-    const [ isAuthenticated, setIsAuthenticated ] = useState(false);
-  
+const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+    const [user, setUser] = useState<IUser>(INITIAL_USER);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
     const navigate = useNavigate();
 
     const checkAuthUser = async () => {
         try {
             const currentAccount = await getCurrentUser();
-            if(currentAccount){
+            if (currentAccount) {
                 setUser({
                     id: currentAccount.$id,
                     name: currentAccount.name,
@@ -75,11 +76,11 @@ const AuthProvider = ({ children } : { children: React.ReactNode }) => {
         checkAuthUser,
     }
     return (
-    <AuthContext.Provider value={value}>
-        {children}
-    </AuthContext.Provider>
+        <AuthContext.Provider value={value}>
+            {children}
+        </AuthContext.Provider>
 
-  )
+    )
 }
 
 export default AuthProvider;

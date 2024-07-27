@@ -60,7 +60,7 @@ const PostForm = ({ post, action, type }: PostFormProps) => {
       downloadUrl: post ? post?.downloadUrl : "https://example.com/file.pdf",
     },
   });
-  
+
 
   const handleSubmit = async (value: z.infer<typeof PostValidation>) => {
     const allFiles = [...imageFiles, ...pdfFiles];
@@ -162,7 +162,7 @@ const PostForm = ({ post, action, type }: PostFormProps) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel className="shad-form_label">
-                Agregar Tags (separados por coma " , ")
+                ${'Agregar Tags (separados por coma " , ")'}
               </FormLabel>
               <FormControl>
                 <Input
