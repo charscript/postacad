@@ -1,4 +1,4 @@
-import { ID, ImageGravity, Query } from "appwrite";
+import { AppwriteException, ID, ImageGravity, Query } from "appwrite";
 import { INewUser, INewPost, IUpdatePost } from "@/types";
 import { account, appwriteConfig, avatars, databases, storage } from "./config";
 
@@ -53,12 +53,33 @@ export async function saveUserToDB(user: {
     }
 }
 
+async function signOutActiveSessions() {
+    try {
+        const session = await account.getSession("current");
+        if (session) {
+            await account.deleteSession(session.$id);
+            console.log('Se ha cerrado la sesión actual.');
+        }
+        console.log('Todas las sesiones activas se han cerrado.');
+    } catch (error) {
+        console.error('Error al cerrar las sesiones activas:', error);
+    }
+}
+
 export async function signInAccount(user: { email: string; password: string; }) {
     try {
         const session = await account.createEmailPasswordSession(user.email, user.password);
         return session;
     } catch (error) {
-        console.log(error)
+        if (error instanceof AppwriteException && error.message.includes('Creation of a session is prohibited when a session is active')) {
+            console.log('Hay una sesión activa. Cerrando todas las sesiones...');
+            await signOutActiveSessions();
+            const session = await account.createEmailPasswordSession(user.email, user.password);
+            return session;
+        } else {
+            console.log(error);
+            throw error; // Vuelve a lanzar el error si no es el error específico
+        }
     }
 }
 
