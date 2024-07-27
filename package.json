@@ -42,7 +42,12 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@eslint/config-array": "^0.17.1",
     "@eslint/js": "^8.56.0",
+    "@eslint/object-schema": "^2.1.4",
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.6",
     "@types/node": "^20.14.10",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
@@ -54,7 +59,10 @@
     "eslint-plugin-react": "^7.35.0",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.7",
+    "glob": "^11.0.0",
     "globals": "^15.8.0",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.19.1",
     "tailwindcss": "^3.4.5",
     "typescript": "^5.2.2",
     "vite": "^5.3.1"
