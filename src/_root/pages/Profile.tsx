@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import GridPostList from '@/components/shared/GridPostList';
 import LikedPosts from './LikedPosts';
 import { followUser, getFollowersCount, getFollowingCount, unfollowUser } from '@/lib/appwrite/api';
+import { INewPost } from '@/types';
 
 interface StatBlockProps {
   value: string | number;
@@ -30,14 +31,21 @@ const Profile = () => {
   const [isFollowingLoading, setIsFollowingLoading] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [postsCount, setPostsCount] = useState(0);
+  const [resourcesCount, setResourcesCount] = useState(0);
 
   useEffect(() => {
     const fetchCounts = async () => {
       if (currentUser) {
         const followers = await getFollowersCount(currentUser.username);
         const following = await getFollowingCount(currentUser.username);
+        const posts = currentUser.posts.length;
+        const resources = currentUser.posts.filter((post: INewPost) => post.isResource).length;
+        
         setFollowersCount(followers);
         setFollowingCount(following);
+        setPostsCount(posts);
+        setResourcesCount(resources);
       }
     };
 
@@ -68,7 +76,7 @@ const Profile = () => {
       setFollowersCount(followersCount - 1);
     }
     setIsFollowing(!isFollowing);
-    await refetch(); // Actualiza los datos del usuario para reflejar los cambios
+    await refetch();
     setIsFollowingLoading(false);
   };
 
@@ -94,7 +102,8 @@ const Profile = () => {
             </div>
 
             <div className="flex gap-8 mt-10 items-center justify-center xl:justify-start flex-wrap z-20">
-              <StatBlock value={currentUser.posts.length} label="Posts" />
+              <StatBlock value={postsCount} label="Posts" />
+              <StatBlock value={resourcesCount} label="Recursos" />
               <StatBlock value={followersCount} label="Followers" />
               <StatBlock value={followingCount} label="Following" />
             </div>

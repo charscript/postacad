@@ -169,13 +169,10 @@ export const useDeleteSavedPost = () => {
 
 export const useGetCurrentUser = () => {
     return useQuery({
-        queryKey: [QUERY_KEYS.GET_CURRENT_USER],
-        queryFn: getCurrentUser,
-        select: (data) => {
-            return data || {}; // Asegúrate de devolver un objeto vacío si los datos son null
-        }
+      queryKey: [QUERY_KEYS.GET_CURRENT_USER],
+      queryFn: getCurrentUser,
     });
-};
+  };
 
 export const useGetPostById = (postId: string) => {
     return useQuery({
@@ -280,13 +277,25 @@ export const useIsFollowing = (followerUsername: string, followedUsername: strin
 
 
 
-export const useCreateTransaction = () => {
+export const useCreateTransaction = (postId: string, userId: string) => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (transaction: ICreateTransaction) => createTransaction(transaction),
+        mutationFn: () => createTransaction(postId, userId),
+        onSuccess: () => {
+            // Invalida la caché para que los datos se actualicen después de la creación
+            queryClient.invalidateQueries({
+                queryKey: [QUERY_KEYS.GET_TRANSACTIONS_FROM_POST_AND_USER, postId, userId],
+            });
+            // Puedes agregar más lógica aquí, por ejemplo, mostrar un mensaje de éxito
+        },
+        onError: (error) => {
+            // Manejo de errores, puedes mostrar un mensaje de error o algo similar
+            console.error('Error creando la transacción:', error);
+        },
     });
 };
+
 
 export const useGetTransactionsFromPostAndUser = (postId: string, userId: string) => {
     return useQuery({

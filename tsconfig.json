@@ -13,7 +13,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "noUnusedLocals": false,  // Ignorar advertencias de variables locales no usadas
+    "noUnusedLocals": false, 
     "noUnusedParameters": false  
   }
 }

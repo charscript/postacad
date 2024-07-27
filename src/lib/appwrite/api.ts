@@ -707,21 +707,20 @@ export async function followUser(followerUsername: string, followedUsername: str
     }
   }
 
-  export const createTransaction = async (transaction: ICreateTransaction) => {
+  export const createTransaction = async (postId: string, userId: string) => {
     try {
-        const transactionDoc = await databases.createDocument(
+        const newTransaction = await databases.createDocument(
             appwriteConfig.databaseId,
             appwriteConfig.transactionsCollectionId,
-            ID.unique(),
+            'unique()', // Generate a unique ID
             {
-                users: [transaction.userId],  // Usa el nombre correcto del atributo
-                posts: [transaction.postId],  // Usa el nombre correcto del atributo
-                amount: transaction.amount,
-                createdAt: new Date(),
+                postId: postId,
+                userId: userId
             }
         );
 
-        return transactionDoc;
+        return newTransaction;
+
     }catch (error) {
         console.log(error);
     }
@@ -734,16 +733,16 @@ export async function followUser(followerUsername: string, followedUsername: str
             appwriteConfig.databaseId,
             appwriteConfig.transactionsCollectionId,
             [
-                Query.equal('posts', postId),
-                Query.equal('users', userId),
+                Query.equal('postId', postId),
+                Query.equal('userId', userId),
             ]
         );
 
         if (!transactions) throw new Error('No transactions found');
-  
+
         return transactions.documents; // Assuming the result has a 'documents' field
     } catch (error) {
         console.log(error);
         throw error;
     }
-}
+};

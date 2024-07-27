@@ -57,12 +57,13 @@ const AuthProvider = ({ children } : { children: React.ReactNode }) => {
     };
 
     useEffect(() => {
-        if(
-            localStorage.getItem('cookieFallback') === '[]' || localStorage.getItem('cookieFallback') === null
-            )
-        navigate('/sign-in')
-
-        checkAuthUser();
+        // Redirige a la página de inicio de sesión si el usuario no está autenticado
+        if (localStorage.getItem('cookieFallback') === '[]' || localStorage.getItem('cookieFallback') === null) {
+            navigate('/sign-in');
+        } else {
+            // Llama a `checkAuthUser` para verificar la sesión actual
+            checkAuthUser();
+        }
     }, []);
 
     const value = {

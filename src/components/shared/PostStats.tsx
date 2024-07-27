@@ -1,18 +1,31 @@
 import { useState, useEffect, useRef } from 'react';
-import { useSavePost, useDeleteSavedPost, useGetCurrentUser, useLikePost, useCreateTransaction } from '@/lib/react-query/queriesAndMutations';
+import { useSavePost, useDeleteSavedPost, useGetCurrentUser, useLikePost, useCreateTransaction, useGetTransactionsFromPostAndUser } from '@/lib/react-query/queriesAndMutations';
 import { checkIsLiked } from '@/lib/utils';
 import { Models } from 'appwrite';
 import Loader from './loader';
-import { Button } from '@/components/ui/button';  // Asegúrate de importar el componente Button
-import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from '@/components/ui/drawer';  // Asegúrate de importar el Drawer
-import { useGetFileDownload } from '@/lib/react-query/queriesAndMutations';  // Importa el hook de descarga
+import { Button } from '@/components/ui/button';
+import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter } from '@/components/ui/drawer';
+import { useGetFileDownload } from '@/lib/react-query/queriesAndMutations';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useUserContext } from '@/context/AuthContext';
 
 type PostStatsProps = {
     post?: Models.Document;
     userId: string;
-    handlePurchase?: () => void;  // Añadir handlePurchase como prop opcional
+    handlePurchase?: () => void;
 };
-const COOLDOWN_TIME = 1000; // Tiempo en milisegundos para el cooldown
+
+const COOLDOWN_TIME = 1000;
 
 type QueueItem = {
     action: 'save' | 'delete';
@@ -21,34 +34,40 @@ type QueueItem = {
 };
 
 const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
-    const likesList = post?.likes.map((user: Models.Document) => user.$id) || [];
+    if (!post) {
+        return null;
+    }
+
+    const { user } = useUserContext(); // Obtén el contexto de usuario
+    const likesList = post.likes.map((user: Models.Document) => user.$id) || [];
     const [likes, setLikes] = useState(likesList);
     const [isSaved, setIsSaved] = useState(false);
-    const [queue, setQueue] = useState<QueueItem[]>([]); // Cola de solicitudes
-    const [drawerOpen, setDrawerOpen] = useState(false); // Estado del Drawer
+    const [queue, setQueue] = useState<QueueItem[]>([]);
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [showAlert, setShowAlert] = useState(false);
 
     const { mutate: likePost } = useLikePost();
     const { mutate: savePost, status: savePostStatus } = useSavePost();
     const { mutate: deleteSavedPost, status: deleteSavedPostStatus } = useDeleteSavedPost();
 
     const { data: currentUser } = useGetCurrentUser();
-    const isProcessing = useRef(false); // Ref para verificar si está en proceso
+    const isProcessing = useRef(false);
+
+    const { data: transactions } = useGetTransactionsFromPostAndUser(post.$id, userId);
 
     useEffect(() => {
-        if (currentUser && currentUser.save) {
-            const savedPostRecord = currentUser.save.find((record: Models.Document) => record.post.$id === post?.$id);
-            setIsSaved(!!savedPostRecord);
-        }
-    }, [currentUser, post?.$id]);
+        const savedPostRecord = currentUser?.save.find((record: Models.Document) => record.post.$id === post.$id);
+        setIsSaved(!!savedPostRecord);
+    }, [currentUser, post.$id]);
 
     useEffect(() => {
         const processQueue = async () => {
-            if (isProcessing.current || queue.length === 0) return; // Evita procesar múltiples veces al mismo tiempo
+            if (isProcessing.current || queue.length === 0) return;
 
             isProcessing.current = true;
 
             while (queue.length > 0) {
-                const item = queue.shift(); // Extrae el primer elemento de la cola
+                const item = queue.shift();
                 if (item) {
                     const { action, postId, recordId } = item;
 
@@ -62,10 +81,8 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
                         }
                     } catch (error) {
                         console.error(`Error processing ${action} action:`, error);
-                        // Manejo de errores si es necesario
                     }
 
-                    // Espera el tiempo del cooldown antes de procesar el siguiente
                     await new Promise(resolve => setTimeout(resolve, COOLDOWN_TIME));
                 }
             }
@@ -88,41 +105,37 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
         }
 
         setLikes(newLikes);
-        likePost({ postId: post?.$id || '', likesArray: newLikes });
+        likePost({ postId: post.$id, likesArray: newLikes });
     };
 
     const handleSavePost = (e: React.MouseEvent) => {
         e.stopPropagation();
-
-        // Actualiza inmediatamente el estado del botón
         setIsSaved(prevIsSaved => !prevIsSaved);
 
-        const savedPostRecord = currentUser?.save.find((record: Models.Document) => record.post.$id === post?.$id);
+        const savedPostRecord = currentUser?.save.find((record: Models.Document) => record.post.$id === post.$id);
 
-        // Encola la solicitud para procesarla después del cooldown
         if (savedPostRecord) {
             console.log('Queueing delete request with ID:', savedPostRecord.$id);
             setQueue(prevQueue => [...prevQueue, { action: 'delete', recordId: savedPostRecord.$id }]);
         } else {
-            console.log('Queueing save request for post with ID:', post?.$id);
-            setQueue(prevQueue => [...prevQueue, { action: 'save', postId: post?.$id || '' }]);
+            console.log('Queueing save request for post with ID:', post.$id);
+            setQueue(prevQueue => [...prevQueue, { action: 'save', postId: post.$id }]);
         }
     };
 
     const isMutating = savePostStatus === 'pending' || deleteSavedPostStatus === 'pending';
 
-    // Hooks para obtener la URL de descarga
     const { mutateAsync: getFileDownload } = useGetFileDownload();
     const { mutateAsync: getImageDownload } = useGetFileDownload();
 
     const handleDownloadFile = async () => {
-        if (post?.fileId) {
+        if (post.fileId) {
             try {
                 const result = await getFileDownload(post.fileId);
                 if (result) {
                     const link = document.createElement('a');
-                    link.href = result.toString();; // Usa la URL directamente
-                    link.download = 'archivo'; // Ajusta el nombre del archivo si es necesario
+                    link.href = result.toString();
+                    link.download = 'archivo';
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
@@ -134,14 +147,13 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
     };
 
     const handleDownloadImage = async () => {
-        if (post?.imageId) {
+        if (post.imageId) {
             try {
-                // Usa mutateAsync para obtener la URL de descarga
                 const result = await getImageDownload(post.imageId);
                 if (result) {
                     const link = document.createElement('a');
-                    link.href = result.toString();; // Usa la URL directamente
-                    link.download = 'imagen'; // Ajusta el nombre de la imagen si es necesario
+                    link.href = result.toString();
+                    link.download = 'imagen';
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
@@ -152,20 +164,32 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
         }
     };
 
-    const { mutate: createTransaction } = useCreateTransaction();
+    const { mutate: createTransaction } = useCreateTransaction(post.$id, user.id);
 
-    const handlePurchaseClick = async (userId: string) => {
+    const handlePurchaseClick = async () => {
         if (post?.isResource && post.price > 0) {
             try {
-                await createTransaction({
-                    userId,
-                    postId: post.$id,
-                    amount: post.price,
-                });
+                if (!user.id) {
+                    throw new Error('Usuario no autenticado');
+                }
+                console.log(user.id,' esta comprando post con ID:', post.$id, 'posteado por el usuario con ID:', userId);
+                await createTransaction(); // Llama a la función de mutación
                 console.log('Compra realizada con éxito');
             } catch (error) {
                 console.error('Error al realizar la compra:', error);
             }
+        }
+    };
+
+    const canPurchase = !transactions || transactions.length === 0;
+    const isLocked = post.price > 0 && !transactions?.length; // Determina si el recurso está bloqueado
+
+
+    const handleDownloadClick = () => {
+        if (isLocked) {
+            setShowAlert(true);
+        } else {
+            setDrawerOpen(true);
         }
     };
 
@@ -188,91 +212,118 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
                             <p className="small-medium lg:base-medium">{likes.length}</p>
                         </div>
 
-                        {/* Botón de descarga solo si es un recurso o tiene imagen */}
-                        {(post?.fileId || post?.imageId) && (
-            <Button
-                type="button"
-                className="cursor-pointer"
-                onClick={() => setDrawerOpen(true)}
-            >
-                <img
-                    src="/assets/icons/download.svg"
-                    alt="download"
-                    width={20}
-                    height={20}
-                />
-            </Button>
-        )}
-                    </div>
-
-                    <div className="flex gap-2">
-                        {isMutating ? (
-                            <div className="loader-icon-resize">
-                                <Loader />
-                            </div>
-                        ) : (
-                            <img
-                                src={isSaved
-                                    ? "/assets/icons/saved.svg"
-                                    : "/assets/icons/save.svg"}
-                                alt="save"
-                                width={20}
-                                height={20}
-                                onClick={handleSavePost}
-                                className={`cursor-pointer ${isMutating ? 'cursor-not-allowed' : ''}`}
-                            />
+                        {(post.fileId || post.imageId) && (
+                            <Button
+                                type="button"
+                                className="cursor-pointer"
+                                onClick={handleDownloadClick}
+                            >
+                                <img
+                                    src="/assets/icons/download.svg"
+                                    alt="download"
+                                    width={20}
+                                    height={20}
+                                />
+                            </Button>
                         )}
                     </div>
+                    
+                    {post.isResource && post.price > 0 && post.creator && userId !== post.creator.$id && (post.fileId || post.imageId) && canPurchase && handlePurchase && (
+                    <div className="flex">
+                        
+                        <div className="flex mb-10 hidden md:block">
+                            <Button
+                                type="button"
+                                className="shad-button_primary w-32 absolute left-1/2 transform -translate-x-1/2"
+                                onClick={() => handlePurchaseClick()}
+                            >
+                                Comprar
+                            </Button>
+                        </div>
+
+
+                        
+                    </div>
+                    )}
+                    
+                    <div className="flex gap-2">
+                        
+                    {post.isResource && post.price > 0 && post.creator && userId !== post.creator.$id && (post.fileId || post.imageId) && canPurchase && handlePurchase && (
+                            <div className="sm:block md:hidden content-center">
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="outline" className="border-primary-500 text-light-2 rounded-full h-6 w-13 subtle-medium ">Comprar</Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This action cannot be undone. This will permanently delete your
+                                                account and remove your data from our servers.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction>Continue</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </div>)}
+                        
+                        <img
+                            src={isSaved ? "/assets/icons/save-filled.svg" : "/assets/icons/save.svg"}
+                            alt="save"
+                            width={20}
+                            height={20}
+                            className={`cursor-pointer ${isMutating ? "opacity-50" : "opacity-100"}`}
+                            onClick={isMutating ? undefined : handleSavePost}
+                        />
+                    </div>
+
+                    
                 </div>
-
-                {/* Contenedor para el botón de "Comprar" */}
-                {post?.isResource && post.price > 0 && post.creator && userId !== post.creator.$id && handlePurchase && (
-                    <Button
-                        type="button"
-                        className="shad-button_primary w-32 absolute left-1/2 transform -translate-x-1/2"
-                        onClick={() => handlePurchaseClick(currentUser?.$id || '')}
-                    >
-                        Comprar
-                    </Button>
-                )}
-
-<Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-    <DrawerContent className="bg-dark-1">
-        <div className="mx-auto max-w-sm">
-            <DrawerHeader>
-                <DrawerTitle>Opciones de Descarga</DrawerTitle>
-                <DrawerDescription>Selecciona una opción para descargar.</DrawerDescription>
-            </DrawerHeader>
-        </div>
-        
-        <div className="flex items-center justify-center gap-4 p-4">
-            <Button
-                variant="outline"
-                className="shad-button_primary w-64"
-                onClick={handleDownloadImage}
-                disabled={!post?.imageId} // Deshabilitar si no hay imagen
-            >
-                Descargar Foto
-            </Button>
-            <Button
-                variant="outline"
-                className="shad-button_primary w-64"
-                onClick={handleDownloadFile}
-                disabled={!post?.fileId} // Deshabilitar si no hay archivo
-            >
-                Descargar Archivo
-            </Button>
-        </div>
-        <DrawerFooter>
-            <div className="flex items-center justify-center">
-                <DrawerClose asChild>
-                    <Button variant="outline" className="shad-button_dark_4 w-64">Cerrar</Button>
-                </DrawerClose>
             </div>
-        </DrawerFooter>
-    </DrawerContent>
-</Drawer>
-            </div>
+
+            
+                    <div className="hidden">
+                        <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Este recurso está bloqueado. Necesitas comprarlo para acceder a la descarga.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel onClick={() => setShowAlert(false)}>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => setDrawerOpen(true)}>Comprar</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                
+
+            <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+                <DrawerContent className="bg-dark-1">
+                        <div className="mx-auto max-w-sm">
+                            <DrawerHeader>
+                                <DrawerTitle>Opciones de Descarga</DrawerTitle>
+                                <DrawerDescription>Selecciona una opción para descargar.</DrawerDescription>
+                            </DrawerHeader>
+                        </div>
+                    <div className="flex items-center justify-center gap-4 p-4">
+                        <Button onClick={handleDownloadImage} disabled={!post.imageId} className="shad-button_primary w-64" variant="outline">Descargar Foto</Button>
+                        <Button onClick={handleDownloadFile} disabled={!post.fileId} className="shad-button_primary w-64" variant="outline">Descargar Archivo</Button>
+                    </div>
+                    <DrawerFooter>
+                        <div className="flex items-center justify-center">
+                            <DrawerClose asChild>
+                                <Button variant="outline" className="shad-button_dark_4 w-64">Cerrar</Button>
+                            </DrawerClose>
+                            </div>
+                    </DrawerFooter>
+                </DrawerContent>
+            </Drawer>
         </div>
     );
 };

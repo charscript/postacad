@@ -68,6 +68,10 @@
     @apply text-[12px] font-semibold leading-[140%];
   }
 
+  .subtle-medium {
+    @apply text-[12px] font-medium leading-[140%];
+  }
+
   .tiny-medium {
     @apply text-[10px] font-medium leading-[140%];
   }
@@ -145,6 +149,7 @@
   /* Home */
   .home-container {
     @apply flex flex-col flex-1 items-center gap-10 overflow-scroll py-10 px-5 md:px-8 lg:p-14 custom-scrollbar;
+    position: relative; /* Necesario para el posicionamiento relativo del botón */
   }
 
   .home-posts {
@@ -152,8 +157,20 @@
   }
 
   .home-creators {
-    @apply hidden xl:flex flex-col w-72 2xl:w-465 px-6 py-10 gap-10  overflow-scroll custom-scrollbar;
+    @apply hidden xl:flex flex-col w-72 2xl:w-465 px-6 py-10 gap-10 overflow-scroll custom-scrollbar;
+    @apply transition-transform duration-300 ease-in-out;
+    transform: translateX(100%); /* Inicialmente oculto fuera de la vista */
   }
+  
+  .home-creators.show {
+    transform: translateX(0); /* Muestra el contenedor con animación */
+  }
+  
+  .toggle-button {
+    @apply sticky top-1/2 transform -translate-y-1/2 bg-primary-500 text-white px-4 py-2 rounded-l-full shadow-lg z-50 transition-all duration-300 ease-in-out;
+  }
+
+  
 
   /* Post Details */
   .post_details-container {
