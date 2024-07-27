@@ -1,10 +1,9 @@
 import { useUserContext } from '@/context/AuthContext';
 import { formatDate } from '@/lib/utils';
 import { Models } from 'appwrite';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import PostStats from './PostStats';
-import { Button } from '@/components/ui/button';  // Asegúrate de importar el componente Button
 import { useGetTransactionsFromPostAndUser } from '@/lib/react-query/queriesAndMutations';
 import { Badge } from '../ui/badge';
 
@@ -16,11 +15,10 @@ const PostCard = ({ post }: PostCardProps) => {
     if (!post.creator) {
         // Manejo del caso en el que `post.creator` es `null` o `undefined`
         return <div>Información del creador no disponible</div>;
-      }
+    }
     const { user } = useUserContext();
-    const [showFullCaption, setShowFullCaption] = useState(false);
     const [isUnlocked, setIsUnlocked] = useState(false);
-    
+
     const { data: transaction } = useGetTransactionsFromPostAndUser(post.$id, user.id);
 
     useEffect(() => {
@@ -29,9 +27,7 @@ const PostCard = ({ post }: PostCardProps) => {
         }
     }, [transaction]); // Solo vuelve a ejecutar cuando `transaction` cambie
 
-    const toggleCaption = () => {
-        setShowFullCaption(!showFullCaption);
-    };
+
 
     const handlePurchase = () => {
         // Lógica para manejar la compra del recurso
@@ -81,7 +77,7 @@ const PostCard = ({ post }: PostCardProps) => {
                                             {post.price === 0 ? 'Gratuito' : `$${post.price.toFixed(2)}`}
                                         </Badge>
                                     )}
-                                    
+
                                 </div>
                             )}
                         </div>

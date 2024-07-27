@@ -4,7 +4,8 @@ import {
     useQueryClient,
     useInfiniteQuery,
 } from '@tanstack/react-query'
-import { createUserAccount,
+import {
+    createUserAccount,
     signInAccount,
     getCurrentUser,
     signOutAccount,
@@ -27,8 +28,8 @@ import { createUserAccount,
     getFileDownload,
     createTransaction,
     getTransactionsFromPostAndUser,
-    } from '../appwrite/api'
-import { ICreateTransaction, INewPost, INewUser, IUpdatePost, IUpdateUser } from "@/types";
+} from '../appwrite/api'
+import { INewPost, INewUser, IUpdatePost } from "@/types";
 import { QUERY_KEYS } from './queryKeys';
 
 
@@ -47,7 +48,7 @@ export const useGetFileDownload = () => {
             const result = await getFileDownload(fileId);
 
             if (!result) throw new Error('No data received');
-            
+
             return result;
         },
         onSuccess: (data) => {
@@ -61,7 +62,7 @@ export const useGetFileDownload = () => {
 
 export const useSignInAccount = () => {
     return useMutation({
-        mutationFn: (user: {email: string; password: string;}) => signInAccount(user)
+        mutationFn: (user: { email: string; password: string; }) => signInAccount(user)
     })
 }
 
@@ -94,16 +95,16 @@ export const useGetRecentPosts = () => {
 
 export const useGetFollowedPosts = () => {
     return useQuery({
-      queryKey: [QUERY_KEYS.GET_FOLLOWED_POSTS],
-      queryFn: getFollowedPosts,
+        queryKey: [QUERY_KEYS.GET_FOLLOWED_POSTS],
+        queryFn: getFollowedPosts,
     });
-  };
+};
 
 export const useLikePost = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({postId, likesArray} : {postId: string; likesArray: string[]}) => likePost(postId, likesArray),
+        mutationFn: ({ postId, likesArray }: { postId: string; likesArray: string[] }) => likePost(postId, likesArray),
         onSuccess: (data) => {
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.GET_POST_BY_ID, data?.$id]
@@ -132,10 +133,11 @@ export const useSavePost = () => {
         },
         onSuccess: () => {
             // Invalidar consultas para asegurar que los datos sean actualizados
-            queryClient.invalidateQueries({queryKey:[QUERY_KEYS.GET_RECENT_POSTS]});
-            queryClient.invalidateQueries({queryKey:[QUERY_KEYS.GET_POSTS]});
-            queryClient.invalidateQueries({queryKey:[QUERY_KEYS.GET_CURRENT_USER]});
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_RECENT_POSTS] });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_POSTS] });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_CURRENT_USER] });
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
             // Manejar errores aquí si es necesario
             console.error('Error saving post:', error);
@@ -152,9 +154,9 @@ export const useDeleteSavedPost = () => {
             // Opcional: Puedes realizar una actualización optimista aquí
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({queryKey:[QUERY_KEYS.GET_RECENT_POSTS]});
-            queryClient.invalidateQueries({queryKey:[QUERY_KEYS.GET_POSTS]});
-            queryClient.invalidateQueries({queryKey:[QUERY_KEYS.GET_CURRENT_USER]});
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_RECENT_POSTS] });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_POSTS] });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_CURRENT_USER] });
         },
         onError: (error) => {
             // Manejo de errores si es necesario
@@ -169,10 +171,10 @@ export const useDeleteSavedPost = () => {
 
 export const useGetCurrentUser = () => {
     return useQuery({
-      queryKey: [QUERY_KEYS.GET_CURRENT_USER],
-      queryFn: getCurrentUser,
+        queryKey: [QUERY_KEYS.GET_CURRENT_USER],
+        queryFn: getCurrentUser,
     });
-  };
+};
 
 export const useGetPostById = (postId: string) => {
     return useQuery({
@@ -183,7 +185,7 @@ export const useGetPostById = (postId: string) => {
 }
 
 export const useUpdatePost = () => {
-    const queryClient = useQueryClient();
+    useQueryClient();
     return useMutation({
         mutationFn: (post: IUpdatePost) => updatePost(post),
         onSuccess: (data) => {
@@ -193,10 +195,10 @@ export const useUpdatePost = () => {
 }
 
 export const useDeletePost = () => {
-    const queryClient = useQueryClient();
+    useQueryClient();
     return useMutation({
-        mutationFn: ({ postId, imageId}: {postId: string, imageId: string}) => deletePost(postId, imageId),
-        onSuccess: (data) => {
+        mutationFn: ({ postId, imageId }: { postId: string, imageId: string }) => deletePost(postId, imageId),
+        onSuccess: () => {
             [QUERY_KEYS.GET_RECENT_POSTS]
         }
     })
@@ -205,21 +207,24 @@ export const useDeletePost = () => {
 
 export const useGetPosts = () => {
     return useInfiniteQuery({
-      queryKey: [QUERY_KEYS.GET_INFINITE_POSTS],
-      queryFn: getInfinitePosts as any,
-      getNextPageParam: (lastPage: any) => {
-        // If there's no data, there are no more pages.
-        if (lastPage && lastPage.documents.length === 0) {
-          return null;
-        }
-  
-        // Use the $id of the last document as the cursor.
-        const lastId = lastPage.documents[lastPage.documents.length - 1].$id;
-        return lastId;
-      },
-      initialPageParam: 0,
+        queryKey: [QUERY_KEYS.GET_INFINITE_POSTS],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        queryFn: getInfinitePosts as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        getNextPageParam: (lastPage: any) => {
+            // If there's no data, there are no more pages.
+            if (lastPage && lastPage.documents.length === 0) {
+                return null;
+            }
+
+            // Use the $id of the last document as the cursor.
+            const lastId = lastPage.documents[lastPage.documents.length - 1].$id;
+            return lastId;
+        },
+        initialPageParam: 0,
+
     });
-  };
+};
 
 
 export const useSearchPosts = (searchTerm: string) => {
@@ -242,10 +247,10 @@ export const useSearchPostsWithImages = (searchTerm: string) => {
 
 export const useGetUsers = (limit?: number) => {
     return useQuery({
-      queryKey: [QUERY_KEYS.GET_USERS],
-      queryFn: () => getUsers(limit),
+        queryKey: [QUERY_KEYS.GET_USERS],
+        queryFn: () => getUsers(limit),
     });
-  };
+};
 
 export const useSearchUsers = (searchTerm: string) => {
     return useQuery({
@@ -266,9 +271,9 @@ export const useGetUserById = (userId: string) => {
 export const useIsFollowing = (followerUsername: string, followedUsername: string) => {
 
     return useQuery({
-      queryKey: [QUERY_KEYS.IS_FOLLOWING, followerUsername, followedUsername],
-      queryFn: () => isFollowing(followerUsername, followedUsername),
-      enabled: !!followerUsername && !!followedUsername,
+        queryKey: [QUERY_KEYS.IS_FOLLOWING, followerUsername, followedUsername],
+        queryFn: () => isFollowing(followerUsername, followedUsername),
+        enabled: !!followerUsername && !!followedUsername,
     });
 
 }

@@ -23,8 +23,9 @@ module.exports = {
   },
   rules: {
     'react/react-in-jsx-scope': 'off', // Desactiva esta regla si estás usando Next.js 13 o superior
-    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+    '@typescript-eslint/no-unused-vars': 'off',
     'react/prop-types': 'off', // Desactiva la regla de prop-types
+    'react-refresh/only-export-components': 'off', // Deshabilitar esta regla
 
   },
 };

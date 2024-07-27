@@ -5,10 +5,9 @@ import SearchResults from '@/components/shared/SearchResults';
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useGetPosts, useGetFollowedPosts, useSearchPostsWithImages } from '@/lib/react-query/queriesAndMutations';
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import Loader from '@/components/shared/loader';
 import { useInView } from 'react-intersection-observer';
-import { toast } from "@/components/ui/use-toast";
 import useDebounce from '@/hooks/useDebounce';
 
 const Explore = () => {
@@ -16,7 +15,7 @@ const Explore = () => {
   const [filterOption, setFilterOption] = useState('todos'); // 'todos' or 'seguidos'
   const [postType, setPostType] = useState('posts'); // 'posts' or 'recursos'
   const { data: posts, fetchNextPage, hasNextPage } = useGetPosts();
-  const { data: followedPosts, isLoading: isLoadingFollowed } = useGetFollowedPosts();
+  const { data: followedPosts } = useGetFollowedPosts();
   const [searchValue, setSearchValue] = useState('');
   const debouncedValue = useDebounce(searchValue, 500);
   const { data: searchedPostsWithImages, isFetching: isSearchFetching } = useSearchPostsWithImages(debouncedValue);
@@ -55,14 +54,14 @@ const Explore = () => {
     )
   }
 
-  const postsWithImages = posts.pages.flatMap(page => page.documents.filter((post: { imageUrl: string; }) => post.imageUrl && post.imageUrl !== 'https://example.com/default-image.jpg'));
+  const postsWithImages = posts.pages.flatMap(page => page?.documents.filter((post: { imageUrl: string; }) => post?.imageUrl && post?.imageUrl !== 'https://example.com/default-image.jpg'));
   const followedPostsWithImages = followedPosts ? followedPosts.documents.flatMap(page => page.filter((post: { imageUrl: string; }) => post.imageUrl && post.imageUrl !== 'https://example.com/default-image.jpg')) : [];
 
-  const filteredPosts = postType === 'recursos' ? postsWithImages.filter(post => post.isResource) : postsWithImages;
+  const filteredPosts = postType === 'recursos' ? postsWithImages.filter(post => post?.isResource) : postsWithImages;
   const filteredFollowedPosts = postType === 'recursos' ? followedPostsWithImages.filter(post => post.isResource) : followedPostsWithImages;
 
   const shouldShowSearchResults = searchValue !== '';
-  const shouldShowPosts = !shouldShowSearchResults && filteredPosts.length === 0 && posts.pages.every((item) => item.documents.length === 0);
+  const shouldShowPosts = !shouldShowSearchResults && filteredPosts.length === 0 && posts.pages.every((item) => item?.documents.length === 0);
   const shouldShowFollowedPosts = filterOption === 'seguidos' && filteredFollowedPosts;
 
   const showLoader = hasNextPage && !isSearchFetching && (filterOption === 'seguidos' && followedPostsWithImages.length > 0) || filterOption === 'todos';
@@ -113,6 +112,7 @@ const Explore = () => {
           <SearchResults isSearchFetching={isSearchFetching} searchedPosts={searchedPostsWithImages} />
         ) : shouldShowFollowedPosts ? (
           filteredFollowedPosts.length ? (
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             filteredFollowedPosts.map((post: any, index: number) => (
               <GridPostList key={`followed-post-${index}`} posts={[post]} />
             ))
@@ -122,7 +122,7 @@ const Explore = () => {
         ) : shouldShowPosts ? (
           <p className="text-light-4 mt-10 text-center w-full">Has llegado al final</p>
         ) : (
-          posts.pages.map((item, index) => (
+          posts.pages.map((_, index) => (
             <GridPostList key={`page-${index}`} posts={filteredPosts} />
           ))
         )}
