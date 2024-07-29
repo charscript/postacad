@@ -252,24 +252,29 @@
 
   }
 
+  .transition-sb {
+    transition-property: transform;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 400ms;
+}
+
   /* styles.css o el archivo CSS correspondiente */
-.rightsidebar {
-  @apply hidden md:flex px-6 py-10 flex-col justify-between min-w-[270px] bg-dark-2 transition-all duration-300 ease-in-out;
+  .rightsidebar {
+    @apply hidden md:flex px-6 py-10 flex-col justify-between min-w-[270px] bg-dark-2 transition-sb ease-in-out;
+    transform: translateX(0);
+  }
 
-}
 
-.rscollapse {
-  transform: translateX(-270px);
-}
+  
+  .rscollapse {
+    transform: translateX(-270px);
+  }
+  
+  .rsdeploy {
+    
+    transform: translateX(0);
+  }
 
-.rsdeploy{
-  transform: translateX(0);
-}
-
-.rightsidebar.collapsed {
-  @apply hidden md:flex px-6 py-10 flex-col justify-between min-w-[270px] bg-dark-2;
-  transform: translateX(100%);
-}
 
 .button-collapse {
   transform: translateX(-270px);
