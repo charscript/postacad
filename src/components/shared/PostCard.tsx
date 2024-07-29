@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import PostStats from './PostStats';
 import { useGetTransactionsFromPostAndUser } from '@/lib/react-query/queriesAndMutations';
 import { Badge } from '../ui/badge';
+import { ModalProvider } from '../ui/animated-modal';
 
 type PostCardProps = {
     post: Models.Document;
@@ -145,7 +146,10 @@ const PostCard = ({ post }: PostCardProps) => {
                 </Link>
             )}
             <div className="mt-5">
-                <PostStats post={post} userId={user.id} handlePurchase={post.isResource ? handlePurchase : undefined} />
+                <ModalProvider>
+                    <PostStats post={post} userId={user.id} handlePurchase={post.isResource ? handlePurchase : undefined} />
+                </ModalProvider>
+
             </div>
         </div>
     );

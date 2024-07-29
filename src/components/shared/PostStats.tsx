@@ -17,6 +17,10 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useUserContext } from '@/context/AuthContext';
+import { Modal, ModalTrigger, ModalBody, ModalContent, ModalFooter } from '@/components/ui/animated-modal';
+
+
+
 
 type PostStatsProps = {
     post?: Models.Document;
@@ -192,6 +196,11 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
         }
     };
 
+    const hidePurchaseButton = () => {
+        return (post.price === 0 || (transactions && transactions?.length > 0) || post.creator.$id === userId) ? "hidden" : ""; return (post
+        )
+    };
+
     return (
         <div className="flex flex-col gap-4 z-20 w-full relative">
             <div className="flex flex-col gap-4 z-20">
@@ -227,6 +236,25 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
                         )}
                     </div>
 
+                    {/* Modal Trigger */}
+                    <ModalTrigger className="btn btn-primary">Open Modal</ModalTrigger>
+                    <Modal>
+                        <ModalBody>
+                            <ModalContent>
+                                <h2>Modal Content</h2>
+                                <p>This is the modal content area.</p>
+                            </ModalContent>
+                            <ModalFooter>
+                                <Button className="btn btn-secondary" onClick={() => console.log("Secondary action")}>
+                                    Secondary Action
+                                </Button>
+                                <Button className="btn btn-primary" onClick={() => console.log("Primary action")}>
+                                    Primary Action
+                                </Button>
+                            </ModalFooter>
+                        </ModalBody>
+                    </Modal>
+
                     {post.isResource && post.price > 0 && post.creator && userId !== post.creator.$id && (post.fileId || post.imageId) && canPurchase && handlePurchase && (
                         <div className="flex">
 
@@ -251,7 +279,8 @@ const PostStats = ({ post, userId, handlePurchase }: PostStatsProps) => {
                             <div className="sm:block md:hidden content-center">
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
-                                        <Button variant="outline" className="border-primary-500 text-light-2 rounded-full h-6 w-13 subtle-medium ">Comprar</Button>
+                                        <Button variant="outline" className={`border-primary-500 text-light-2 rounded-full h-6 w-13 subtle-medium ${hidePurchaseButton()} md:block hidden`}>Comprar por ${post.price}
+                                        </Button>
                                     </AlertDialogTrigger>
                                     <AlertDialogContent>
                                         <AlertDialogHeader>

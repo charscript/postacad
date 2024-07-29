@@ -117,12 +117,7 @@
   }
 
    /* Common container adjustment for small devices */
-   @media (max-width: 768px) {
-    .common-container {
-      @apply flex flex-col flex-1 items-center gap-10 overflow-scroll py-10 px-5 md:px-8 lg:p-14 custom-scrollbar;
-      padding-bottom: 190px; /* Adjust based on the height of the Bottombar */
-    }
-  }
+   
 
   /* All Users */
   .user-container {
@@ -148,7 +143,7 @@
 
   /* Home */
   .home-container {
-    @apply flex flex-col flex-1 items-center gap-10 overflow-scroll py-10 px-5 md:px-8 lg:p-14 custom-scrollbar;
+    @apply items-center gap-10 py-10 overflow-y-scroll px-5 md:px-8 lg:p-14 custom-scrollbar; 
     position: relative; /* Necesario para el posicionamiento relativo del botón */
   }
 
@@ -167,7 +162,7 @@
   }
   
   .toggle-button {
-    @apply sticky top-1/2 transform -translate-y-1/2 bg-primary-500 text-white px-4 py-2 rounded-l-full shadow-lg z-50 transition-all duration-300 ease-in-out;
+    @apply fixed right-0 top-1/2 transform -translate-y-1/2 bg-primary-500 text-white rounded-l-full pe-1 ps-2 shadow-lg z-50 transition-all duration-300 ease-in-out;
   }
 
   
@@ -247,9 +242,42 @@
     @apply hidden md:flex px-6 py-10 flex-col justify-between min-w-[270px] bg-dark-2;
   }
 
+
   .leftsidebar-link {
     @apply rounded-lg base-medium hover:bg-primary-500 transition;
   }
+
+  .avoidButton {
+    margin-right: 0px;
+
+  }
+
+  /* styles.css o el archivo CSS correspondiente */
+.rightsidebar {
+  @apply hidden md:flex px-6 py-10 flex-col justify-between min-w-[270px] bg-dark-2 transition-all duration-300 ease-in-out;
+
+}
+
+.rscollapse {
+  transform: translateX(-270px);
+}
+
+.rsdeploy{
+  transform: translateX(0);
+}
+
+.rightsidebar.collapsed {
+  @apply hidden md:flex px-6 py-10 flex-col justify-between min-w-[270px] bg-dark-2;
+  transform: translateX(100%);
+}
+
+.button-collapse {
+  transform: translateX(-270px);
+}
+
+.button-deploy {
+  transform: translateX(0);
+}
 
   /* Post Card */
   .post-card {
