@@ -1,5 +1,5 @@
-// ToggleContext.tsx
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React from 'react';
+import { createContext, useState, useContext, ReactNode } from 'react';
 
 interface ToggleContextType {
     isToggled: boolean;
