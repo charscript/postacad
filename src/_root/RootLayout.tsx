@@ -11,14 +11,16 @@ const RootLayout = () => {
 
   return (
     <>
-      <Topbar />
-      <LeftSidebar />
+      <div className="w-full md:flex">
+        <Topbar />
+        <LeftSidebar />
 
-
-      <Outlet />
-      <RightSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
-      <Bottombar />
-
+        <section className="flex flex-1 h-full">
+          <Outlet />
+        </section>
+        <RightSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
+        <Bottombar />
+      </div>
     </>
   )
 }

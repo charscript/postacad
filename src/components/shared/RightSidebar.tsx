@@ -29,7 +29,7 @@ const RightSidebar = ({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: any }
             >
                 {isOpen ? '> ' : '<'}
             </Button>
-            <nav className={`rightsidebar ${!isOpen ? ('mx-[-270px] fixed rscollapse') : ('rsdeploy')}  border-l-primary-500 border-l-[1px]`}>
+            <nav className={`rightsidebar sm:hidden ${!isOpen ? ('mx-[-270px] fixed rscollapse') : ('rsdeploy')}  border-l-primary-500 border-l-[1px]`}>
                 <div className="flex flex-col gap-11">
                     <Link to="/" className="flex gap-3 items-center">
                         <img src="/assets/images/logo.svg" alt="logo" width={170} height={36} />
