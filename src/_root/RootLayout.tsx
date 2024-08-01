@@ -8,21 +8,13 @@ import { useState } from 'react';
 const RootLayout = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const toggleFullscreen = () => {
-    const fullscreenElement = document.fullscreenElement;
-    if (fullscreenElement) {
-      document.exitFullscreen();
-    } else {
-      document.documentElement.requestFullscreen().catch((e) => {
-        console.log(e);
-      });
-    }
-  };
+
 
   return (
     <>
-      <div className="w-full h-screen md:flex overflow-hidden">
-        <Topbar toggleFullscreen={toggleFullscreen} /> {/* Pasa la función como prop */}
+      <div
+        className="w-full h-screen md:flex overflow-hidden ">
+        <Topbar />
         <LeftSidebar />
 
         <section className="flex flex-1 h-full overflow-auto">
