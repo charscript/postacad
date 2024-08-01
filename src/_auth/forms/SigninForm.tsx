@@ -46,8 +46,11 @@ const SignInForm = () => {
       return toast({
         title: "Inicio de sesión fallido, por favor intentalo de nuevo"
       })
+    } else {
+      localStorage.setItem('cookieFallback', JSON.stringify(session));
     }
     const isLoggedIn = await checkAuthUser();
+
 
     if (isLoggedIn) {
       form.reset();
