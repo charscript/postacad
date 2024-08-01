@@ -4,8 +4,12 @@ import { useSignOutAccount } from '@/lib/react-query/queriesAndMutations';
 import { useEffect } from 'react';
 import { useUserContext } from '@/context/AuthContext';
 
+// Define la interfaz para las props
+interface TopbarProps {
+  toggleFullscreen: () => void; // Especifica el tipo de toggleFullscreen
+}
 
-const Topbar = () => {
+const Topbar: React.FC<TopbarProps> = ({ toggleFullscreen }) => {
   const { mutate: signOut, isSuccess } = useSignOutAccount();
   const navigate = useNavigate();
   const { user } = useUserContext();
@@ -14,7 +18,7 @@ const Topbar = () => {
     if (isSuccess) {
       navigate(0);
     }
-  }, [isSuccess])
+  }, [isSuccess]);
 
   return (
     <section className="topbar">
@@ -24,9 +28,14 @@ const Topbar = () => {
         </Link>
 
         <div className="flex gap-4">
+          {/* Botón de pantalla completa */}
+          <Button variant="ghost" className="shad-button_ghost" onClick={toggleFullscreen}>
+            <img src="/assets/icons/logout.svg" alt="fullscreen" /> {/* Icono provisional */}
+          </Button>
+
+          {/* Botón de cerrar sesión */}
           <Button variant="ghost" className="shad-button_ghost" onClick={() => signOut()}>
             <img src="/assets/icons/logout.svg" alt="logout" />
-
           </Button>
 
           <Link to={`/profile/${user.id}`} className="flex-center gap-3">
@@ -35,7 +44,7 @@ const Topbar = () => {
         </div>
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default Topbar
+export default Topbar;
