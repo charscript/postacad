@@ -57,12 +57,15 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     useEffect(() => {
-        // Redirige a la página de inicio de sesión si el usuario no está autenticado
-        if (localStorage.getItem('cookieFallback') === '[]' || localStorage.getItem('cookieFallback') === null) {
-            navigate('/sign-in');
-        } else {
-            // Llama a `checkAuthUser` para verificar la sesión actual
+        const cookieFallback = localStorage.getItem('cookieFallback');
+        if (cookieFallback && cookieFallback !== '[]') {
+            const userId = JSON.parse(cookieFallback);
+            // Aquí haces una llamada a la API para obtener la información actualizada del usuario
+            // const updatedUserInfo = await getUserInfo(userId);
             checkAuthUser();
+            setIsAuthenticated(true);
+        } else {
+            navigate('/sign-in');
         }
     }, []);
 
