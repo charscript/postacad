@@ -13,11 +13,11 @@ const RootLayout = () => {
   return (
     <>
       <div
-        className="w-full md:flex overflow-hidden">
+        className="w-full h-screen md:flex overflow-hidden ">
         <Topbar />
         <LeftSidebar />
 
-        <section className="flex flex-1 h-full">
+        <section className="flex flex-1 h-full overflow-auto">
           <Outlet />
         </section>
         <RightSidebar isOpen={isOpen} setIsOpen={setIsOpen} />
