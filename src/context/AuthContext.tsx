@@ -59,7 +59,6 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     useEffect(() => {
         const cookieFallback = localStorage.getItem('cookieFallback');
         if (cookieFallback && cookieFallback !== '[]') {
-            const userId = JSON.parse(cookieFallback);
             // Aquí haces una llamada a la API para obtener la información actualizada del usuario
             // const updatedUserInfo = await getUserInfo(userId);
             checkAuthUser();
