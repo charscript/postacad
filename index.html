@@ -1,13 +1,44 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PostAcad</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PostAcad</title>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx">
+  </script>
+  <script>
+    function getFullscreenElement() {
+      return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+    }
+
+    function toggleFullscreen() {
+
+      if (getFullscreenElement()) {
+        document.exitFullscreen();
+      } else {
+        document.documentElement.requestFullscreen().catch((e) => {
+          console.log(e)
+        })
+      }
+
+    }
+
+    function isSmallDevice() {
+      return window.matchMedia("(max-width: 768px)").matches; // Ajusta el tamaño según tus necesidades
+    }
+
+    document.addEventListener("click", (e) => {
+      if (isSmallDevice()) {
+        toggleFullscreen();
+      }
+    });
+  </script>
+</body>
+
 </html>

@@ -10,10 +10,9 @@ export const appwriteConfig = {
     savesCollectionId: import.meta.env.VITE_APPWRITE_SAVES_COLLECTION_ID,
     followsCollectionId: import.meta.env.VITE_APPWRITE_FOLLOWS_COLLECTION_ID,
     transactionsCollectionId: import.meta.env.VITE_APPWRITE_TRANSACTIONS_COLLECTION_ID,
+    postacadApiKey: import.meta.env.VITE_APPWRITE_POSTACAD_API_KEY,
 
 }
-
-
 
 export const client = new Client();
 
