@@ -12,33 +12,6 @@
   <div id="root"></div>
   <script type="module" src="/src/main.tsx">
   </script>
-  <script>
-    function getFullscreenElement() {
-      return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-    }
-
-    function toggleFullscreen() {
-
-      if (getFullscreenElement()) {
-        document.exitFullscreen();
-      } else {
-        document.documentElement.requestFullscreen().catch((e) => {
-          console.log(e)
-        })
-      }
-
-    }
-
-    function isSmallDevice() {
-      return window.matchMedia("(max-width: 768px)").matches; // Ajusta el tamaño según tus necesidades
-    }
-
-    document.addEventListener("touchstart", (e) => {
-      if (isSmallDevice()) {
-        toggleFullscreen();
-      }
-    });
-  </script>
 </body>
 
 </html>

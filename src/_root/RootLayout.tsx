@@ -8,35 +8,12 @@ import { useState } from 'react';
 const RootLayout = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  function getFullscreenElement() {
-    return document.fullscreenElement;
-  }
 
-  function toggleFullscreen() {
-    if (getFullscreenElement()) {
-      document.exitFullscreen();
-    } else {
-      document.documentElement.requestFullscreen().catch((e) => {
-        console.log(e);
-      });
-    }
-  }
-
-  function isSmallDevice() {
-    return window.matchMedia("(max-width: 768px)").matches; // Ajusta el tamaño según tus necesidades
-  }
 
   return (
     <>
       <div
-        className="w-full md:flex"
-        onClick={() => {
-          if (isSmallDevice()) {
-            toggleFullscreen();
-          }
-        }}
-        style={{ cursor: 'pointer' }}
-      >
+        className="w-full md:flex overflow-hidden">
         <Topbar />
         <LeftSidebar />
 
